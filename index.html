@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,10 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#4f46e5">
-    <link rel="apple-touch-icon" href="https://placehold.co/192x192/4f46e5/white?text=BP">
-
-    <link id="manifest-link" rel="manifest">
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -42,12 +40,12 @@
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
-            padding-bottom: 120px;
+            padding-bottom: 180px;
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
 
-        /* Estilos del Drawer Colapsable */
+        /* Drawer Colapsable */
         .bottom-drawer {
             position: fixed;
             bottom: 0;
@@ -58,7 +56,7 @@
             border-top-right-radius: 2.5rem;
             box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.1);
             z-index: 100;
-            transition: transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.1);
+            transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
             transform: translateY(calc(100% - 110px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
         }
@@ -94,6 +92,7 @@
 
         .dot { width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; }
 
+        /* Tareas */
         .task-wrapper {
             position: relative;
             overflow: hidden;
@@ -124,6 +123,24 @@
             border-radius: 1.25rem;
         }
 
+        /* Detalles expandibles */
+        .details-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, margin-top 0.3s ease;
+            background: #f8fafc;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        .task-wrapper.open .details-panel {
+            max-height: 200px;
+            margin-top: -5px;
+            padding: 12px;
+            border: 1px solid #f1f5f9;
+            border-top: none;
+        }
+
+        /* Calendario */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-day { 
             height: 40px;
@@ -142,10 +159,7 @@
             bottom: 4px; 
         }
 
-        #calendarContent {
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
+        #calendarContent { transition: opacity 0.3s ease, transform 0.3s ease; }
         .slide-left { transform: translateX(-20px); opacity: 0; }
         .slide-right { transform: translateX(20px); opacity: 0; }
     </style>
@@ -162,10 +176,9 @@
         </header>
 
         <main class="task-area" id="taskList">
-            <!-- Tareas inyectadas por JS -->
+            <!-- Tareas -->
         </main>
 
-        <!-- Drawer colapsable -->
         <div id="bottomDrawer" class="bottom-drawer">
             <div class="drawer-handle-container" id="drawerHandle">
                 <div class="drawer-handle-bump">
@@ -176,10 +189,9 @@
             </div>
 
             <div class="px-5 pb-4">
-                <!-- Input de Tarea -->
                 <div class="flex gap-2 mb-6">
                     <div class="flex-1 flex gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100 shadow-inner">
-                        <input type="text" id="taskInput" placeholder="¿Qué toca hoy?" 
+                        <input type="text" id="taskInput" placeholder="¿Qué sigue?" 
                             class="flex-1 px-3 py-2 bg-transparent border-none text-sm focus:ring-0 outline-none">
                         <input type="time" id="timeInput" 
                             class="w-24 px-1 py-2 bg-white border border-slate-100 rounded-xl text-xs font-bold text-indigo-600 shadow-sm">
@@ -189,7 +201,6 @@
                     </button>
                 </div>
 
-                <!-- Calendario -->
                 <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-4 border border-slate-100">
                     <div class="flex items-center justify-between mb-4">
                         <span id="calendarMonth" class="text-xs font-black text-indigo-900 uppercase tracking-widest opacity-60">MAYO DE 2026</span>
@@ -210,7 +221,7 @@
     </div>
 
     <script>
-        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV2')) || {};
+        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV3')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
 
@@ -223,50 +234,27 @@
             initCalendarSwipes();
         };
 
-        // --- Lógica del Drawer ---
         function initDrawerGestures() {
             const drawer = document.getElementById('bottomDrawer');
             const handle = document.getElementById('drawerHandle');
             let startY = 0;
-            let currentTranslateY = 0;
 
-            handle.addEventListener('touchstart', e => {
-                startY = e.touches[0].clientY;
-                drawer.style.transition = 'none';
-            });
-
-            handle.addEventListener('touchmove', e => {
-                const deltaY = e.touches[0].clientY - startY;
-                if (deltaY < 0 && !drawer.classList.contains('expanded')) {
-                    // Moviendo hacia arriba para expandir
-                }
-            });
-
+            handle.addEventListener('touchstart', e => startY = e.touches[0].clientY);
             handle.addEventListener('touchend', e => {
                 const deltaY = e.changedTouches[0].clientY - startY;
-                drawer.style.transition = 'transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.1)';
-                
-                if (deltaY < -50) {
-                    drawer.classList.add('expanded');
-                } else if (deltaY > 50) {
-                    drawer.classList.remove('expanded');
-                } else {
-                    // Toggle simple si no hay mucho swipe
-                    drawer.classList.toggle('expanded');
-                }
+                if (deltaY < -40) drawer.classList.add('expanded');
+                else if (deltaY > 40) drawer.classList.remove('expanded');
+                else drawer.classList.toggle('expanded');
                 haptic();
             });
         }
 
-        // --- Lógica del Calendario ---
         function renderCalendar(direction = '') {
             const body = document.getElementById('calendarBody');
-            const content = document.getElementById('calendarContent');
             const monthDisplay = document.getElementById('calendarMonth');
+            const content = document.getElementById('calendarContent');
             
-            if (direction) {
-                content.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
-            }
+            if (direction) content.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
 
             setTimeout(() => {
                 const year = currentViewDate.getFullYear();
@@ -279,19 +267,11 @@
                 
                 let html = '';
                 for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
-                
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const isSelected = dateStr === selectedDateStr;
-                    const hasTasks = tasksByDate[dateStr] && tasksByDate[dateStr].length > 0;
                     const hasPending = tasksByDate[dateStr] && tasksByDate[dateStr].some(t => !t.completed);
-                    
-                    html += `
-                        <div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">
-                            ${day}
-                            ${hasPending ? '<div class="pending-dot"></div>' : ''}
-                        </div>
-                    `;
+                    html += `<div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">${day}${hasPending ? '<div class="pending-dot"></div>' : ''}</div>`;
                 }
                 body.innerHTML = html;
                 content.classList.remove('slide-left', 'slide-right');
@@ -310,9 +290,7 @@
             area.addEventListener('touchstart', e => startX = e.touches[0].clientX);
             area.addEventListener('touchend', e => {
                 let diff = e.changedTouches[0].clientX - startX;
-                if (Math.abs(diff) > 60) {
-                    changeMonth(diff > 0 ? -1 : 1);
-                }
+                if (Math.abs(diff) > 70) changeMonth(diff > 0 ? -1 : 1);
             });
         }
 
@@ -323,20 +301,17 @@
             haptic();
         }
 
-        // --- Lógica de Tareas ---
         function addTask() {
             const textInput = document.getElementById('taskInput');
             const timeInput = document.getElementById('timeInput');
             if (!textInput.value.trim()) return;
-
             const newTask = {
                 id: Date.now(),
                 text: textInput.value.trim(),
                 time: timeInput.value || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 completed: false,
-                summary: ""
+                notes: ""
             };
-
             if (!tasksByDate[selectedDateStr]) tasksByDate[selectedDateStr] = [];
             tasksByDate[selectedDateStr].unshift(newTask);
             saveToStorage();
@@ -348,7 +323,6 @@
         function renderTasks() {
             const list = document.getElementById('taskList');
             const dayTasks = tasksByDate[selectedDateStr] || [];
-            
             const displayDate = new Date(selectedDateStr + "T00:00:00");
             document.getElementById('currentDateDisplay').innerText = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).format(displayDate);
             document.getElementById('taskCounter').innerText = dayTasks.filter(t => !t.completed).length;
@@ -370,14 +344,31 @@
                             <div onclick="toggleTask(${t.id})" class="w-6 h-6 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'} flex items-center justify-center transition-colors">
                                 ${t.completed ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg>' : ''}
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1" onclick="toggleDetails(${t.id})">
                                 <p class="text-sm font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
                                 <span class="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">${t.time}</span>
                             </div>
                         </div>
                     </div>
+                    <div class="details-panel" id="details-${t.id}">
+                        <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Añadir notas..." 
+                            class="w-full bg-white p-3 rounded-xl border border-slate-100 text-xs text-slate-600 focus:ring-1 focus:ring-indigo-100 outline-none resize-none" rows="3">${t.notes || ''}</textarea>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function toggleDetails(id) {
+            const wrapper = document.getElementById(`wrapper-${id}`);
+            const wasOpen = wrapper.classList.contains('open');
+            document.querySelectorAll('.task-wrapper').forEach(w => w.classList.remove('open'));
+            if (!wasOpen) wrapper.classList.add('open');
+            haptic();
+        }
+
+        function updateNotes(id, text) {
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, notes: text} : t);
+            saveToStorage();
         }
 
         let taskTouchStartX = 0;
@@ -390,7 +381,7 @@
             const el = document.getElementById(`task-${id}`);
             const diff = e.changedTouches[0].clientX - taskTouchStartX;
             el.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-            if (diff < -70) { el.style.transform = 'translateX(-100%)'; haptic(); setTimeout(() => deleteTask(id), 200); }
+            if (diff < -80) { el.style.transform = 'translateX(-100%)'; haptic(); setTimeout(() => deleteTask(id), 200); }
             else { el.style.transform = 'translateX(0)'; }
         }
 
@@ -399,7 +390,9 @@
             haptic(); saveToStorage(); renderTasks(); 
         }
         function deleteTask(id) { tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); saveToStorage(); renderTasks(); }
-        function saveToStorage() { localStorage.setItem('bulletTasksV2', JSON.stringify(tasksByDate)); renderCalendar(); }
+        function saveToStorage() { localStorage.setItem('bulletTasksV3', JSON.stringify(tasksByDate)); renderCalendar(); }
     </script>
 </body>
 </html>
+
+```
