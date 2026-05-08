@@ -1,0 +1,21 @@
+{
+"short_name": "MiAgenda",
+"name": "Mi Agenda Bullet",
+"icons": [
+{
+"src": "https://placehold.co/192x192/4f46e5/white?text=BP",
+"type": "image/png",
+"sizes": "192x192"
+},
+{
+"src": "https://placehold.co/512x512/4f46e5/white?text=Agenda",
+"type": "image/png",
+"sizes": "512x512"
+}
+],
+"start_url": "./index.html",
+"background_color": "#f8fafc",
+"display": "standalone",
+"scope": "./",
+"theme_color": "#4f46e5"
+}
