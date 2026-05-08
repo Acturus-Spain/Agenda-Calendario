@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bullet Planner Pro</title>
     
+    <!-- Meta etiquetas para App -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PlannerPro">
     <meta name="theme-color" content="#4f46e5">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -40,12 +42,12 @@
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
-            padding-bottom: 180px;
+            padding-bottom: 220px;
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
 
-        /* Drawer Colapsable */
+        /* Estilos del Drawer */
         .bottom-drawer {
             position: fixed;
             bottom: 0;
@@ -57,7 +59,7 @@
             box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.1);
             z-index: 100;
             transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
-            transform: translateY(calc(100% - 110px - var(--safe-bottom)));
+            transform: translateY(calc(100% - 130px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
         }
 
@@ -65,20 +67,11 @@
             transform: translateY(0);
         }
 
-        /* Tirador con bulto y puntos */
-        .drawer-handle-container {
-            height: 44px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: grab;
-            position: relative;
-        }
-
         .drawer-handle-bump {
             position: absolute;
             top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 80px;
             height: 25px;
             background: white;
@@ -88,11 +81,12 @@
             justify-content: center;
             align-items: center;
             gap: 4px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.03);
         }
 
         .dot { width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; }
 
-        /* Tareas */
+        /* Tareas y Swipe */
         .task-wrapper {
             position: relative;
             overflow: hidden;
@@ -104,7 +98,7 @@
         .task-content-fg {
             position: relative;
             background: white;
-            padding: 1rem;
+            padding: 1.25rem;
             border: 1px solid #f1f5f9;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 10;
@@ -123,21 +117,20 @@
             border-radius: 1.25rem;
         }
 
-        /* Detalles expandibles */
+        /* Notas Expandibles */
         .details-panel {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease-out, margin-top 0.3s ease;
+            transition: max-height 0.3s ease-out;
             background: #f8fafc;
-            border-radius: 0 0 1rem 1rem;
         }
 
         .task-wrapper.open .details-panel {
             max-height: 200px;
-            margin-top: -5px;
-            padding: 12px;
+            padding: 1rem;
             border: 1px solid #f1f5f9;
             border-top: none;
+            border-radius: 0 0 1.25rem 1.25rem;
         }
 
         /* Calendario */
@@ -149,38 +142,57 @@
             transition: all 0.25s ease;
             position: relative;
         }
-        .calendar-day.selected { background: #4f46e5; color: white; font-weight: 700; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
-        
-        .pending-dot { 
-            width: 4px; height: 4px; 
-            background: #6366f1; 
-            border-radius: 50%; 
-            position: absolute; 
-            bottom: 4px; 
-        }
+        .calendar-day.selected { background: #4f46e5; color: white; font-weight: 700; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .pending-dot { width: 4px; height: 4px; background: #6366f1; border-radius: 50%; position: absolute; bottom: 4px; }
 
         #calendarContent { transition: opacity 0.3s ease, transform 0.3s ease; }
         .slide-left { transform: translateX(-20px); opacity: 0; }
         .slide-right { transform: translateX(20px); opacity: 0; }
+
+        /* Botón instalar */
+        #installBtn { display: none; }
+
+        /* Ajuste del botón flotante de añadir */
+        .add-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #4f46e5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px -5px rgba(79, 70, 229, 0.5);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .add-button:active {
+            transform: scale(0.9);
+            box-shadow: 0 4px 10px -2px rgba(79, 70, 229, 0.4);
+        }
     </style>
 </head>
 <body class="text-slate-900">
 
     <div class="main-container max-w-md mx-auto">
-        <header class="px-6 pt-6 pb-2 flex justify-between items-start">
+        <header class="px-6 pt-8 pb-4 flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Mis Tareas</h1>
-                <p id="currentDateDisplay" class="text-indigo-600 font-semibold text-sm">Cargando...</p>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Agenda</h1>
+                <p id="currentDateDisplay" class="text-indigo-600 font-bold text-sm">Cargando...</p>
             </div>
-            <div id="taskCounter" class="bg-indigo-50 text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full text-xs font-black shadow-sm">0</div>
+            <div class="flex items-center gap-3">
+                <button id="installBtn" class="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">Instalar App</button>
+                <div id="taskCounter" class="bg-indigo-50 text-indigo-600 w-9 h-9 flex items-center justify-center rounded-2xl text-xs font-black shadow-sm">0</div>
+            </div>
         </header>
 
         <main class="task-area" id="taskList">
             <!-- Tareas -->
         </main>
 
+        <!-- Drawer colapsable -->
         <div id="bottomDrawer" class="bottom-drawer">
-            <div class="drawer-handle-container" id="drawerHandle">
+            <div class="h-12 w-full flex justify-center items-center cursor-grab relative" id="drawerHandle">
                 <div class="drawer-handle-bump">
                     <div class="dot"></div>
                     <div class="dot"></div>
@@ -188,28 +200,33 @@
                 </div>
             </div>
 
-            <div class="px-5 pb-4">
-                <div class="flex gap-2 mb-6">
-                    <div class="flex-1 flex gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100 shadow-inner">
-                        <input type="text" id="taskInput" placeholder="¿Qué sigue?" 
-                            class="flex-1 px-3 py-2 bg-transparent border-none text-sm focus:ring-0 outline-none">
-                        <input type="time" id="timeInput" 
-                            class="w-24 px-1 py-2 bg-white border border-slate-100 rounded-xl text-xs font-bold text-indigo-600 shadow-sm">
+            <div class="px-6 pb-8">
+                <!-- Nueva zona de Input con Botón Redondo -->
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="flex-1 flex flex-col gap-1 bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-inner">
+                        <input type="text" id="taskInput" placeholder="¿Qué tienes planeado?" 
+                            class="w-full px-2 py-1 bg-transparent border-none text-[15px] font-medium focus:ring-0 outline-none placeholder:text-slate-300">
+                        <div class="flex items-center gap-2 px-2">
+                             <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="3" stroke-linecap="round"/></svg>
+                             <input type="time" id="timeInput" 
+                                class="bg-transparent border-none text-[11px] font-bold text-indigo-500 outline-none">
+                        </div>
                     </div>
-                    <button onclick="addTask()" class="bg-indigo-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl shadow-lg active:scale-95 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    <button onclick="addTask()" class="add-button">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3" stroke-linecap="round"/></svg>
                     </button>
                 </div>
 
-                <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-4 border border-slate-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <span id="calendarMonth" class="text-xs font-black text-indigo-900 uppercase tracking-widest opacity-60">MAYO DE 2026</span>
-                        <div class="flex gap-1">
-                            <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5"/></svg></button>
-                            <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5"/></svg></button>
+                <!-- Calendario -->
+                <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-5 border border-slate-100">
+                    <div class="flex items-center justify-between mb-5">
+                        <span id="calendarMonth" class="text-[10px] font-black text-indigo-900 uppercase tracking-[0.2em] opacity-40">MAYO DE 2026</span>
+                        <div class="flex gap-2">
+                            <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5"/></svg></button>
+                            <button onclick="changeMonth(1)" class="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5"/></svg></button>
                         </div>
                     </div>
-                    <div class="calendar-grid mb-2 text-[10px] font-bold text-slate-300 text-center uppercase tracking-tighter">
+                    <div class="calendar-grid mb-3 text-[10px] font-black text-slate-300 text-center uppercase tracking-tighter">
                         <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
                     </div>
                     <div id="calendarContent">
@@ -221,7 +238,50 @@
     </div>
 
     <script>
-        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV3')) || {};
+        // --- LOGICA DE INSTALACION ---
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') installBtn.style.display = 'none';
+                deferredPrompt = null;
+            }
+        });
+
+        const manifest = {
+            "name": "Bullet Planner Pro",
+            "short_name": "PlannerPro",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#4f46e5",
+            "icons": [{ "src": "https://placehold.co/192x192/4f46e5/white?text=BP", "sizes": "192x192", "type": "image/png" }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('fetch', function(event) {});`;
+            const swBlob = new Blob([swCode], {type: 'text/javascript'});
+            const swURL = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swURL).catch(() => {});
+        }
+
+        // --- LOGICA APP ---
+        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV5')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
 
@@ -238,12 +298,11 @@
             const drawer = document.getElementById('bottomDrawer');
             const handle = document.getElementById('drawerHandle');
             let startY = 0;
-
             handle.addEventListener('touchstart', e => startY = e.touches[0].clientY);
             handle.addEventListener('touchend', e => {
                 const deltaY = e.changedTouches[0].clientY - startY;
-                if (deltaY < -40) drawer.classList.add('expanded');
-                else if (deltaY > 40) drawer.classList.remove('expanded');
+                if (deltaY < -30) drawer.classList.add('expanded');
+                else if (deltaY > 30) drawer.classList.remove('expanded');
                 else drawer.classList.toggle('expanded');
                 haptic();
             });
@@ -328,7 +387,7 @@
             document.getElementById('taskCounter').innerText = dayTasks.filter(t => !t.completed).length;
 
             if (dayTasks.length === 0) {
-                list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">No hay tareas para este día</div>`;
+                list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">No hay tareas pendientes</div>`;
                 return;
             }
 
@@ -341,18 +400,18 @@
                          ontouchmove="handleTaskSwipeMove(event, ${t.id})"
                          ontouchend="handleTaskSwipeEnd(event, ${t.id})">
                         <div class="flex items-center gap-4">
-                            <div onclick="toggleTask(${t.id})" class="w-6 h-6 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'} flex items-center justify-center transition-colors">
-                                ${t.completed ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg>' : ''}
+                            <div onclick="toggleTask(${t.id})" class="w-7 h-7 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'} flex items-center justify-center transition-all">
+                                ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg>' : ''}
                             </div>
                             <div class="flex-1" onclick="toggleDetails(${t.id})">
-                                <p class="text-sm font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
-                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">${t.time}</span>
+                                <p class="text-[15px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
+                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
                             </div>
                         </div>
                     </div>
                     <div class="details-panel" id="details-${t.id}">
-                        <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Añadir notas..." 
-                            class="w-full bg-white p-3 rounded-xl border border-slate-100 text-xs text-slate-600 focus:ring-1 focus:ring-indigo-100 outline-none resize-none" rows="3">${t.notes || ''}</textarea>
+                        <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Añadir detalles o notas..." 
+                            class="w-full bg-white p-4 rounded-xl border-none text-xs text-slate-500 focus:ring-0 outline-none resize-none shadow-inner" rows="3">${t.notes || ''}</textarea>
                     </div>
                 </div>
             `).join('');
@@ -375,13 +434,13 @@
         function handleTaskSwipeStart(e, id) { taskTouchStartX = e.touches[0].clientX; document.getElementById(`task-${id}`).style.transition = 'none'; }
         function handleTaskSwipeMove(e, id) {
             const diff = e.touches[0].clientX - taskTouchStartX;
-            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
+            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -110)}px)`;
         }
         function handleTaskSwipeEnd(e, id) {
             const el = document.getElementById(`task-${id}`);
             const diff = e.changedTouches[0].clientX - taskTouchStartX;
-            el.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-            if (diff < -80) { el.style.transform = 'translateX(-100%)'; haptic(); setTimeout(() => deleteTask(id), 200); }
+            el.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            if (diff < -85) { el.style.transform = 'translateX(-100%)'; haptic(); setTimeout(() => deleteTask(id), 200); }
             else { el.style.transform = 'translateX(0)'; }
         }
 
@@ -390,7 +449,7 @@
             haptic(); saveToStorage(); renderTasks(); 
         }
         function deleteTask(id) { tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); saveToStorage(); renderTasks(); }
-        function saveToStorage() { localStorage.setItem('bulletTasksV3', JSON.stringify(tasksByDate)); renderCalendar(); }
+        function saveToStorage() { localStorage.setItem('bulletTasksV5', JSON.stringify(tasksByDate)); renderCalendar(); }
     </script>
 </body>
 </html>
