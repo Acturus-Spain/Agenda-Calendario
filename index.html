@@ -26,7 +26,7 @@
             font-family: 'Inter', sans-serif; 
             background-color: #f8fafc;
             overflow: hidden;
-            height: 100vh;
+            height: 100dvh;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
@@ -34,27 +34,65 @@
         .main-container {
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: 100dvh;
             padding-top: var(--safe-top);
-            padding-bottom: var(--safe-bottom);
         }
 
         .task-area {
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
+            padding-bottom: 120px;
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
 
-        .bottom-controls {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid #e2e8f0;
-            padding: 1rem 1rem calc(1rem + var(--safe-bottom));
-            box-shadow: 0 -10px 30px -5px rgba(0, 0, 0, 0.05);
-            z-index: 50;
+        /* Estilos del Drawer Colapsable */
+        .bottom-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top-left-radius: 2.5rem;
+            border-top-right-radius: 2.5rem;
+            box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.1);
+            transform: translateY(calc(100% - 110px - var(--safe-bottom)));
+            padding-bottom: var(--safe-bottom);
         }
+
+        .bottom-drawer.expanded {
+            transform: translateY(0);
+        }
+
+        /* Tirador con bulto y puntos */
+        .drawer-handle-container {
+            height: 44px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            position: relative;
+        }
+
+        .drawer-handle-bump {
+            position: absolute;
+            top: -15px;
+            width: 80px;
+            height: 25px;
+            background: white;
+            border-top-left-radius: 100px;
+            border-top-right-radius: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dot { width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; }
 
         .task-wrapper {
             position: relative;
@@ -88,13 +126,13 @@
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-day { 
-            height: 38px;
+            height: 40px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; border-radius: 12px; cursor: pointer;
-            transition: all 0.2s ease;
+            font-size: 0.85rem; border-radius: 14px; cursor: pointer;
+            transition: all 0.25s ease;
             position: relative;
         }
-        .calendar-day.selected { background: #4f46e5; color: white; font-weight: 700; transform: scale(1.05); }
+        .calendar-day.selected { background: #4f46e5; color: white; font-weight: 700; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
         
         .pending-dot { 
             width: 4px; height: 4px; 
@@ -104,137 +142,74 @@
             bottom: 4px; 
         }
 
-        .summary-container { 
-            max-height: 0; 
-            overflow: hidden; 
-            transition: all 0.3s ease; 
-            opacity: 0; 
-        }
-        .summary-container.open { 
-            max-height: 150px; 
-            opacity: 1; 
-            margin-top: 0.75rem; 
+        #calendarContent {
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        .install-banner {
-            display: none;
-            background: #4f46e5;
-            color: white;
-            padding: 12px;
-            border-radius: 16px;
-            margin: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            text-align: center;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-left { transform: translateX(-20px); opacity: 0; }
+        .slide-right { transform: translateX(20px); opacity: 0; }
     </style>
 </head>
 <body class="text-slate-900">
 
     <div class="main-container max-w-md mx-auto">
-        <div id="installBanner" class="install-banner" onclick="installPWA()">
-            ✨ ¡Instala esta App en tu escritorio! Toca aquí.
-        </div>
-
         <header class="px-6 pt-6 pb-2 flex justify-between items-start">
             <div>
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Mis Tareas</h1>
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Mis Tareas</h1>
                 <p id="currentDateDisplay" class="text-indigo-600 font-semibold text-sm">Cargando...</p>
             </div>
-            <span id="taskCounter" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-widest">0</span>
+            <div id="taskCounter" class="bg-indigo-50 text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full text-xs font-black shadow-sm">0</div>
         </header>
 
         <main class="task-area" id="taskList">
             <!-- Tareas inyectadas por JS -->
         </main>
 
-        <div class="bottom-controls">
-            <div class="flex gap-2 mb-4">
-                <div class="flex-1 flex gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
-                    <input type="text" id="taskInput" placeholder="¿Qué sigue?" 
-                        class="flex-1 px-3 py-2 bg-transparent border-none text-sm focus:ring-0 outline-none">
-                    <input type="time" id="timeInput" 
-                        class="w-20 px-1 py-2 bg-white border-none rounded-xl text-xs font-bold text-indigo-600 shadow-sm">
+        <!-- Drawer colapsable -->
+        <div id="bottomDrawer" class="bottom-drawer">
+            <div class="drawer-handle-container" id="drawerHandle">
+                <div class="drawer-handle-bump">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
                 </div>
-                <button onclick="addTask()" class="bg-indigo-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl shadow-lg shadow-indigo-100 active:scale-90 transition-transform">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2.5" stroke-linecap="round"/></svg>
-                </button>
             </div>
 
-            <div id="calendarSwipeArea" class="bg-white rounded-3xl p-4 border border-slate-100">
-                <div class="flex items-center justify-between mb-3">
-                    <span id="calendarMonth" class="text-xs font-bold text-slate-500 uppercase tracking-widest">Mes</span>
-                    <div class="flex gap-1">
-                        <div class="w-1 h-1 bg-slate-200 rounded-full"></div>
-                        <div class="w-3 h-1 bg-indigo-400 rounded-full"></div>
+            <div class="px-5 pb-4">
+                <!-- Input de Tarea -->
+                <div class="flex gap-2 mb-6">
+                    <div class="flex-1 flex gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-100 shadow-inner">
+                        <input type="text" id="taskInput" placeholder="¿Qué sigue?" 
+                            class="flex-1 px-3 py-2 bg-transparent border-none text-sm focus:ring-0 outline-none">
+                        <input type="time" id="timeInput" 
+                            class="w-24 px-1 py-2 bg-white border border-slate-100 rounded-xl text-xs font-bold text-indigo-600 shadow-sm">
+                    </div>
+                    <button onclick="addTask()" class="bg-indigo-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl shadow-lg active:scale-95 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
+
+                <!-- Calendario -->
+                <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-4 border border-slate-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <span id="calendarMonth" class="text-xs font-black text-indigo-900 uppercase tracking-widest opacity-60">MAYO DE 2026</span>
+                        <div class="flex gap-1">
+                            <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5"/></svg></button>
+                            <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid mb-2 text-[10px] font-bold text-slate-300 text-center uppercase tracking-tighter">
+                        <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                    </div>
+                    <div id="calendarContent">
+                        <div id="calendarBody" class="calendar-grid"></div>
                     </div>
                 </div>
-                <div class="calendar-grid mb-1 text-[10px] font-bold text-slate-300 text-center uppercase">
-                    <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
-                </div>
-                <div id="calendarBody" class="calendar-grid"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let deferredPrompt;
-
-        // 1. Generar Manifiesto como Data URI
-        const manifest = {
-            "name": "Bullet Planner Pro",
-            "short_name": "BulletPlanner",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#f8fafc",
-            "theme_color": "#4f46e5",
-            "icons": [{
-                "src": "https://placehold.co/192x192/4f46e5/white?text=BP",
-                "sizes": "192x192",
-                "type": "image/png"
-            }, {
-                "src": "https://placehold.co/512x512/4f46e5/white?text=Planner",
-                "sizes": "512x512",
-                "type": "image/png"
-            }]
-        };
-        const manifestStr = JSON.stringify(manifest);
-        const manifestBlob = new Blob([manifestStr], {type: 'application/json'});
-        document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(manifestBlob));
-
-        // 2. Registro de Service Worker (desde un Blob para cumplir el requisito de 1 solo archivo)
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', e => self.skipWaiting());
-                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => {})));
-            `;
-            const swBlob = new Blob([swCode], {type: 'application/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                .then(() => console.log("SW Activo"))
-                .catch(err => console.log("SW Error", err));
-        }
-
-        // 3. Capturar el evento de instalación
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBanner').style.display = 'block';
-        });
-
-        async function installPWA() {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('installBanner').style.display = 'none';
-            }
-            deferredPrompt = null;
-        }
-
         let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV2')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
@@ -244,41 +219,101 @@
         window.onload = () => {
             renderCalendar();
             renderTasks();
-            setupCalendarSwipes();
+            initDrawerGestures();
+            initCalendarSwipes();
         };
 
-        function saveToStorage() {
-            localStorage.setItem('bulletTasksV2', JSON.stringify(tasksByDate));
-            renderCalendar();
+        // --- Lógica del Drawer ---
+        function initDrawerGestures() {
+            const drawer = document.getElementById('bottomDrawer');
+            const handle = document.getElementById('drawerHandle');
+            let startY = 0;
+            let currentTranslateY = 0;
+
+            handle.addEventListener('touchstart', e => {
+                startY = e.touches[0].clientY;
+                drawer.style.transition = 'none';
+            });
+
+            handle.addEventListener('touchmove', e => {
+                const deltaY = e.touches[0].clientY - startY;
+                if (deltaY < 0 && !drawer.classList.contains('expanded')) {
+                    // Moviendo hacia arriba para expandir
+                }
+            });
+
+            handle.addEventListener('touchend', e => {
+                const deltaY = e.changedTouches[0].clientY - startY;
+                drawer.style.transition = 'transform 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.1)';
+                
+                if (deltaY < -50) {
+                    drawer.classList.add('expanded');
+                } else if (deltaY > 50) {
+                    drawer.classList.remove('expanded');
+                } else {
+                    // Toggle simple si no hay mucho swipe
+                    drawer.classList.toggle('expanded');
+                }
+                haptic();
+            });
         }
 
-        function renderCalendar() {
+        // --- Lógica del Calendario ---
+        function renderCalendar(direction = '') {
             const body = document.getElementById('calendarBody');
+            const content = document.getElementById('calendarContent');
             const monthDisplay = document.getElementById('calendarMonth');
-            const year = currentViewDate.getFullYear();
-            const month = currentViewDate.getMonth();
             
-            const firstDay = new Date(year, month, 1).getDay();
-            const startingDay = firstDay === 0 ? 6 : firstDay - 1;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
-            
-            let html = '';
-            for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isSelected = dateStr === selectedDateStr;
-                const hasPending = tasksByDate[dateStr] && tasksByDate[dateStr].some(t => !t.completed);
-                html += `
-                    <div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">
-                        ${day}
-                        ${hasPending ? '<div class="pending-dot"></div>' : ''}
-                    </div>
-                `;
+            if (direction) {
+                content.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
             }
-            body.innerHTML = html;
+
+            setTimeout(() => {
+                const year = currentViewDate.getFullYear();
+                const month = currentViewDate.getMonth();
+                const firstDay = new Date(year, month, 1).getDay();
+                const startingDay = firstDay === 0 ? 6 : firstDay - 1;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
+                
+                let html = '';
+                for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const isSelected = dateStr === selectedDateStr;
+                    const hasTasks = tasksByDate[dateStr] && tasksByDate[dateStr].length > 0;
+                    const hasPending = tasksByDate[dateStr] && tasksByDate[dateStr].some(t => !t.completed);
+                    
+                    html += `
+                        <div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">
+                            ${day}
+                            ${hasPending ? '<div class="pending-dot"></div>' : ''}
+                        </div>
+                    `;
+                }
+                body.innerHTML = html;
+                content.classList.remove('slide-left', 'slide-right');
+            }, direction ? 150 : 0);
+        }
+
+        function changeMonth(delta) {
+            currentViewDate.setMonth(currentViewDate.getMonth() + delta);
+            renderCalendar(delta > 0 ? 'left' : 'right');
+            haptic();
+        }
+
+        function initCalendarSwipes() {
+            const area = document.getElementById('calendarSwipeArea');
+            let startX = 0;
+            area.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+            area.addEventListener('touchend', e => {
+                let diff = e.changedTouches[0].clientX - startX;
+                if (Math.abs(diff) > 60) {
+                    changeMonth(diff > 0 ? -1 : 1);
+                }
+            });
         }
 
         function selectDate(dateStr) {
@@ -288,6 +323,7 @@
             haptic();
         }
 
+        // --- Lógica de Tareas ---
         function addTask() {
             const textInput = document.getElementById('taskInput');
             const timeInput = document.getElementById('timeInput');
@@ -296,7 +332,7 @@
             const newTask = {
                 id: Date.now(),
                 text: textInput.value.trim(),
-                time: timeInput.value || "--:--",
+                time: timeInput.value || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 completed: false,
                 summary: ""
             };
@@ -313,11 +349,12 @@
             const list = document.getElementById('taskList');
             const dayTasks = tasksByDate[selectedDateStr] || [];
             
-            document.getElementById('currentDateDisplay').innerText = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).format(new Date(selectedDateStr + "T00:00:00"));
+            const displayDate = new Date(selectedDateStr + "T00:00:00");
+            document.getElementById('currentDateDisplay').innerText = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).format(displayDate);
             document.getElementById('taskCounter').innerText = dayTasks.filter(t => !t.completed).length;
 
             if (dayTasks.length === 0) {
-                list.innerHTML = `<div class="py-20 text-center opacity-30 text-sm font-medium">No hay tareas para este día</div>`;
+                list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">No hay tareas para este día</div>`;
                 return;
             }
 
@@ -326,37 +363,33 @@
                     <div class="task-delete-bg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg></div>
                     <div class="task-content-fg" 
                          id="task-${t.id}"
-                         ontouchstart="handleSwipeStart(event, ${t.id})"
-                         ontouchmove="handleSwipeMove(event, ${t.id})"
-                         ontouchend="handleSwipeEnd(event, ${t.id})">
+                         ontouchstart="handleTaskSwipeStart(event, ${t.id})"
+                         ontouchmove="handleTaskSwipeMove(event, ${t.id})"
+                         ontouchend="handleTaskSwipeEnd(event, ${t.id})">
                         <div class="flex items-center gap-4">
-                            <div onclick="toggleTask(${t.id})" class="w-6 h-6 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'} flex items-center justify-center">
+                            <div onclick="toggleTask(${t.id})" class="w-6 h-6 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'} flex items-center justify-center transition-colors">
                                 ${t.completed ? '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg>' : ''}
                             </div>
-                            <div class="flex-1" onclick="toggleSummary(${t.id})">
-                                <p class="text-sm font-semibold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
-                                <span class="text-[10px] font-bold text-indigo-400 uppercase">${t.time}</span>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
+                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">${t.time}</span>
                             </div>
-                        </div>
-                        <div id="summary-${t.id}" class="summary-container">
-                            <textarea oninput="updateSummary(${t.id}, this.value)" placeholder="Notas..." 
-                                class="w-full p-3 bg-slate-50 border-none rounded-xl text-xs outline-none h-20 resize-none">${t.summary || ''}</textarea>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        let touchStartX = 0;
-        function handleSwipeStart(e, id) { touchStartX = e.touches[0].clientX; document.getElementById(`task-${id}`).style.transition = 'none'; }
-        function handleSwipeMove(e, id) {
-            const diff = e.touches[0].clientX - touchStartX;
+        let taskTouchStartX = 0;
+        function handleTaskSwipeStart(e, id) { taskTouchStartX = e.touches[0].clientX; document.getElementById(`task-${id}`).style.transition = 'none'; }
+        function handleTaskSwipeMove(e, id) {
+            const diff = e.touches[0].clientX - taskTouchStartX;
             if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
         }
-        function handleSwipeEnd(e, id) {
+        function handleTaskSwipeEnd(e, id) {
             const el = document.getElementById(`task-${id}`);
-            const diff = e.changedTouches[0].clientX - touchStartX;
-            el.style.transition = 'transform 0.3s ease';
+            const diff = e.changedTouches[0].clientX - taskTouchStartX;
+            el.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
             if (diff < -70) { el.style.transform = 'translateX(-100%)'; haptic(); setTimeout(() => deleteTask(id), 200); }
             else { el.style.transform = 'translateX(0)'; }
         }
@@ -366,24 +399,7 @@
             haptic(); saveToStorage(); renderTasks(); 
         }
         function deleteTask(id) { tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); saveToStorage(); renderTasks(); }
-        function toggleSummary(id) { document.getElementById(`summary-${id}`).classList.toggle('open'); }
-        function updateSummary(id, val) { 
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, summary: val} : t);
-            localStorage.setItem('bulletTasksV2', JSON.stringify(tasksByDate));
-        }
-
-        function setupCalendarSwipes() {
-            const area = document.getElementById('calendarSwipeArea');
-            let startX = 0;
-            area.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-            area.addEventListener('touchend', e => {
-                let diff = e.changedTouches[0].clientX - startX;
-                if (Math.abs(diff) > 50) {
-                    currentViewDate.setMonth(currentViewDate.getMonth() + (diff > 0 ? -1 : 1));
-                    renderCalendar();
-                }
-            });
-        }
+        function saveToStorage() { localStorage.setItem('bulletTasksV2', JSON.stringify(tasksByDate)); renderCalendar(); }
     </script>
 </body>
 </html>
