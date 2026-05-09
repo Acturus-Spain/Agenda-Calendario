@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bullet Planner Pro</title>
     
-    <!-- Meta etiquetas para App -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="PlannerPro">
     <meta name="theme-color" content="#4f46e5">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,6 +17,7 @@
         :root { 
             --safe-top: env(safe-area-inset-top); 
             --safe-bottom: env(safe-area-inset-bottom); 
+            --primary: #4f46e5;
         }
         
         body { 
@@ -42,12 +40,11 @@
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
-            padding-bottom: 220px;
+            padding-bottom: 240px;
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
 
-        /* Estilos del Drawer */
         .bottom-drawer {
             position: fixed;
             bottom: 0;
@@ -56,177 +53,195 @@
             background: white;
             border-top-left-radius: 2.5rem;
             border-top-right-radius: 2.5rem;
-            box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.08);
             z-index: 100;
             transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
-            transform: translateY(calc(100% - 130px - var(--safe-bottom)));
+            transform: translateY(calc(100% - 145px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
         }
 
-        .bottom-drawer.expanded {
-            transform: translateY(0);
-        }
+        .bottom-drawer.expanded { transform: translateY(0); }
 
         .drawer-handle-bump {
             position: absolute;
-            top: -15px;
+            top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 25px;
+            width: 60px;
+            height: 24px;
             background: white;
-            border-top-left-radius: 100px;
-            border-top-right-radius: 100px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 4px;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.03);
+        }
+        .dot { width: 4px; height: 4px; background: #e2e8f0; border-radius: 50%; }
+
+        .input-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 20px 20px 20px;
         }
 
-        .dot { width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; }
+        .input-pill {
+            flex: 1;
+            background: #f1f4f9;
+            border-radius: 24px;
+            padding: 8px 8px 8px 24px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #eef2f7;
+        }
 
-        /* Tareas y Swipe */
+        .time-chip {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            cursor: pointer;
+        }
+
+        .time-chip span {
+            color: #4f46e5;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .add-button-square {
+            width: 58px;
+            height: 58px;
+            background: #4f46e5;
+            border-radius: 20px; /* Cuadrado con bordes redondeados como en la imagen */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+            transition: transform 0.1s;
+        }
+        .add-button-square:active { transform: scale(0.92); }
+
         .task-wrapper {
             position: relative;
-            overflow: hidden;
+            background: white;
             border-radius: 1.25rem;
             margin-bottom: 0.75rem;
-            touch-action: pan-y;
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+        }
+
+        .task-delete-bg {
+            position: absolute;
+            inset: 0;
+            background: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 2rem;
+            color: white;
+            z-index: 1;
         }
 
         .task-content-fg {
             position: relative;
             background: white;
             padding: 1.25rem;
-            border: 1px solid #f1f5f9;
+            z-index: 2;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 10;
         }
 
-        .task-delete-bg {
-            position: absolute;
-            right: 0; top: 0; bottom: 0;
-            width: 100%;
-            background: linear-gradient(90deg, #f87171, #ef4444);
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 1.5rem;
-            color: white;
-            border-radius: 1.25rem;
-        }
-
-        /* Notas Expandibles */
         .details-panel {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out;
-            background: #f8fafc;
+            background: white;
+            z-index: 2;
+            position: relative;
         }
 
         .task-wrapper.open .details-panel {
             max-height: 200px;
-            padding: 1rem;
-            border: 1px solid #f1f5f9;
-            border-top: none;
-            border-radius: 0 0 1.25rem 1.25rem;
+            padding: 0 1.25rem 1.25rem 1.25rem;
         }
 
-        /* Calendario */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        #calendarContent {
+            touch-action: pan-y;
+            will-change: transform;
+            transition: transform 0.3s ease-out;
+        }
+        
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         .calendar-day { 
-            height: 40px;
+            height: 42px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; border-radius: 14px; cursor: pointer;
-            transition: all 0.25s ease;
+            font-size: 0.9rem; border-radius: 12px; cursor: pointer;
             position: relative;
+            font-weight: 500;
+            color: #64748b;
         }
-        .calendar-day.selected { background: #4f46e5; color: white; font-weight: 700; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
-        .pending-dot { width: 4px; height: 4px; background: #6366f1; border-radius: 50%; position: absolute; bottom: 4px; }
-
-        #calendarContent { transition: opacity 0.3s ease, transform 0.3s ease; }
-        .slide-left { transform: translateX(-20px); opacity: 0; }
-        .slide-right { transform: translateX(20px); opacity: 0; }
-
-        /* Botón instalar */
-        #installBtn { display: none; }
-
-        /* Ajuste del botón flotante de añadir */
-        .add-button {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #4f46e5;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 25px -5px rgba(79, 70, 229, 0.5);
-            transition: all 0.2s ease;
-            flex-shrink: 0;
+        .calendar-day.selected { 
+            background: var(--primary); 
+            color: white; 
+            font-weight: 700; 
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); 
         }
-        .add-button:active {
-            transform: scale(0.9);
-            box-shadow: 0 4px 10px -2px rgba(79, 70, 229, 0.4);
+        .pending-dot { 
+            width: 4px; height: 4px; background: #6366f1; border-radius: 50%; 
+            position: absolute; bottom: 6px; 
         }
+        .selected .pending-dot { background: white; }
+
     </style>
 </head>
 <body class="text-slate-900">
 
     <div class="main-container max-w-md mx-auto">
-        <header class="px-6 pt-8 pb-4 flex justify-between items-center">
+        <header class="px-6 pt-8 pb-4 flex justify-between items-end">
             <div>
-                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Agenda</h1>
-                <p id="currentDateDisplay" class="text-indigo-600 font-bold text-sm">Cargando...</p>
+                <p id="currentDateDisplay" class="text-indigo-600 font-bold text-xs uppercase tracking-widest mb-1">Cargando...</p>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Mi Agenda</h1>
             </div>
-            <div class="flex items-center gap-3">
-                <button id="installBtn" class="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">Instalar App</button>
-                <div id="taskCounter" class="bg-indigo-50 text-indigo-600 w-9 h-9 flex items-center justify-center rounded-2xl text-xs font-black shadow-sm">0</div>
-            </div>
+            <div id="taskCounter" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-black">0</div>
         </header>
 
         <main class="task-area" id="taskList">
-            <!-- Tareas -->
+            <!-- Tareas dinámicas aquí -->
         </main>
 
-        <!-- Drawer colapsable -->
         <div id="bottomDrawer" class="bottom-drawer">
-            <div class="h-12 w-full flex justify-center items-center cursor-grab relative" id="drawerHandle">
+            <div class="h-10 w-full flex justify-center items-center cursor-grab" id="drawerHandle">
                 <div class="drawer-handle-bump">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                 </div>
             </div>
 
-            <div class="px-6 pb-8">
-                <!-- Nueva zona de Input con Botón Redondo -->
-                <div class="flex items-center gap-4 mb-8">
-                    <div class="flex-1 flex flex-col gap-1 bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-inner">
-                        <input type="text" id="taskInput" placeholder="¿Qué tienes planeado?" 
-                            class="w-full px-2 py-1 bg-transparent border-none text-[15px] font-medium focus:ring-0 outline-none placeholder:text-slate-300">
-                        <div class="flex items-center gap-2 px-2">
-                             <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="3" stroke-linecap="round"/></svg>
-                             <input type="time" id="timeInput" 
-                                class="bg-transparent border-none text-[11px] font-bold text-indigo-500 outline-none">
-                        </div>
+            <div class="input-bar-container">
+                <div class="input-pill">
+                    <input type="text" id="taskInput" placeholder="¿Qué sigue?" 
+                        class="flex-1 bg-transparent border-none text-[16px] font-medium focus:ring-0 outline-none placeholder:text-slate-400">
+                    <div class="time-chip" onclick="document.getElementById('timeInput').showPicker()">
+                        <span id="timeDisplay">12:00</span>
+                        <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <input type="time" id="timeInput" class="hidden" onchange="updateTimeDisplay(this.value)">
                     </div>
-                    <button onclick="addTask()" class="add-button">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3" stroke-linecap="round"/></svg>
-                    </button>
                 </div>
+                <button onclick="addTask()" class="add-button-square">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3" stroke-linecap="round"/></svg>
+                </button>
+            </div>
 
-                <!-- Calendario -->
-                <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-5 border border-slate-100">
+            <div class="px-6 pb-8">
+                <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-5 border border-slate-100 overflow-hidden">
                     <div class="flex items-center justify-between mb-5">
-                        <span id="calendarMonth" class="text-[10px] font-black text-indigo-900 uppercase tracking-[0.2em] opacity-40">MAYO DE 2026</span>
-                        <div class="flex gap-2">
-                            <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5"/></svg></button>
-                            <button onclick="changeMonth(1)" class="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5"/></svg></button>
-                        </div>
+                        <span id="calendarMonth" class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">MAYO DE 2026</span>
                     </div>
-                    <div class="calendar-grid mb-3 text-[10px] font-black text-slate-300 text-center uppercase tracking-tighter">
+                    <div class="calendar-grid mb-2 text-[10px] font-black text-slate-300 text-center uppercase">
                         <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
                     </div>
                     <div id="calendarContent">
@@ -238,61 +253,24 @@
     </div>
 
     <script>
-        // --- LOGICA DE INSTALACION ---
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'block';
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') installBtn.style.display = 'none';
-                deferredPrompt = null;
-            }
-        });
-
-        const manifest = {
-            "name": "Bullet Planner Pro",
-            "short_name": "PlannerPro",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#ffffff",
-            "theme_color": "#4f46e5",
-            "icons": [{ "src": "https://placehold.co/192x192/4f46e5/white?text=BP", "sizes": "192x192", "type": "image/png" }]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestURL;
-        document.head.appendChild(link);
-
-        if ('serviceWorker' in navigator) {
-            const swCode = `self.addEventListener('fetch', function(event) {});`;
-            const swBlob = new Blob([swCode], {type: 'text/javascript'});
-            const swURL = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swURL).catch(() => {});
-        }
-
-        // --- LOGICA APP ---
-        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV5')) || {};
+        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV6')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
 
-        const haptic = () => { if(window.navigator.vibrate) window.navigator.vibrate(15); };
+        const haptic = () => { if(window.navigator.vibrate) window.navigator.vibrate(10); };
 
         window.onload = () => {
+            document.getElementById('timeInput').value = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+            updateTimeDisplay(document.getElementById('timeInput').value);
             renderCalendar();
             renderTasks();
             initDrawerGestures();
-            initCalendarSwipes();
+            initCalendarDraggable();
         };
+
+        function updateTimeDisplay(val) {
+            document.getElementById('timeDisplay').innerText = val;
+        }
 
         function initDrawerGestures() {
             const drawer = document.getElementById('bottomDrawer');
@@ -308,49 +286,89 @@
             });
         }
 
-        function renderCalendar(direction = '') {
+        function initCalendarDraggable() {
+            const container = document.getElementById('calendarContent');
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            container.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                container.style.transition = 'none';
+            });
+
+            container.addEventListener('touchmove', e => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX - startX;
+                // Aplicamos el movimiento en tiempo real
+                container.style.transform = `translateX(${currentX}px)`;
+            });
+
+            container.addEventListener('touchend', e => {
+                isDragging = false;
+                container.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                
+                const threshold = window.innerWidth / 4;
+                if (currentX > threshold) {
+                    // Mover al mes anterior
+                    container.style.transform = `translateX(100%)`;
+                    setTimeout(() => {
+                        changeMonth(-1);
+                        container.style.transition = 'none';
+                        container.style.transform = `translateX(-100%)`;
+                        setTimeout(() => {
+                            container.style.transition = 'transform 0.3s ease-out';
+                            container.style.transform = `translateX(0)`;
+                        }, 10);
+                    }, 300);
+                } else if (currentX < -threshold) {
+                    // Mover al siguiente mes
+                    container.style.transform = `translateX(-100%)`;
+                    setTimeout(() => {
+                        changeMonth(1);
+                        container.style.transition = 'none';
+                        container.style.transform = `translateX(100%)`;
+                        setTimeout(() => {
+                            container.style.transition = 'transform 0.3s ease-out';
+                            container.style.transform = `translateX(0)`;
+                        }, 10);
+                    }, 300);
+                } else {
+                    // Volver al centro
+                    container.style.transform = `translateX(0)`;
+                }
+                currentX = 0;
+            });
+        }
+
+        function renderCalendar() {
             const body = document.getElementById('calendarBody');
             const monthDisplay = document.getElementById('calendarMonth');
-            const content = document.getElementById('calendarContent');
             
-            if (direction) content.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
-
-            setTimeout(() => {
-                const year = currentViewDate.getFullYear();
-                const month = currentViewDate.getMonth();
-                const firstDay = new Date(year, month, 1).getDay();
-                const startingDay = firstDay === 0 ? 6 : firstDay - 1;
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                
-                monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
-                
-                let html = '';
-                for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    const isSelected = dateStr === selectedDateStr;
-                    const hasPending = tasksByDate[dateStr] && tasksByDate[dateStr].some(t => !t.completed);
-                    html += `<div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">${day}${hasPending ? '<div class="pending-dot"></div>' : ''}</div>`;
-                }
-                body.innerHTML = html;
-                content.classList.remove('slide-left', 'slide-right');
-            }, direction ? 150 : 0);
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const startingDay = firstDay === 0 ? 6 : firstDay - 1;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
+            
+            let html = '';
+            for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = dateStr === selectedDateStr;
+                const hasPending = tasksByDate[dateStr] && tasksByDate[dateStr].some(t => !t.completed);
+                html += `<div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">${day}${hasPending ? '<div class="pending-dot"></div>' : ''}</div>`;
+            }
+            body.innerHTML = html;
         }
 
         function changeMonth(delta) {
             currentViewDate.setMonth(currentViewDate.getMonth() + delta);
-            renderCalendar(delta > 0 ? 'left' : 'right');
+            renderCalendar();
             haptic();
-        }
-
-        function initCalendarSwipes() {
-            const area = document.getElementById('calendarSwipeArea');
-            let startX = 0;
-            area.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-            area.addEventListener('touchend', e => {
-                let diff = e.changedTouches[0].clientX - startX;
-                if (Math.abs(diff) > 70) changeMonth(diff > 0 ? -1 : 1);
-            });
         }
 
         function selectDate(dateStr) {
@@ -367,7 +385,7 @@
             const newTask = {
                 id: Date.now(),
                 text: textInput.value.trim(),
-                time: timeInput.value || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                time: timeInput.value || "12:00",
                 completed: false,
                 notes: ""
             };
@@ -383,38 +401,66 @@
             const list = document.getElementById('taskList');
             const dayTasks = tasksByDate[selectedDateStr] || [];
             const displayDate = new Date(selectedDateStr + "T00:00:00");
-            document.getElementById('currentDateDisplay').innerText = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).format(displayDate);
+            document.getElementById('currentDateDisplay').innerText = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).format(displayDate);
             document.getElementById('taskCounter').innerText = dayTasks.filter(t => !t.completed).length;
 
             if (dayTasks.length === 0) {
-                list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">No hay tareas pendientes</div>`;
+                list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">Tu agenda está vacía</div>`;
                 return;
             }
 
             list.innerHTML = dayTasks.map((t) => `
                 <div class="task-wrapper" id="wrapper-${t.id}">
-                    <div class="task-delete-bg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg></div>
+                    <div class="task-delete-bg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
                     <div class="task-content-fg" 
                          id="task-${t.id}"
                          ontouchstart="handleTaskSwipeStart(event, ${t.id})"
                          ontouchmove="handleTaskSwipeMove(event, ${t.id})"
                          ontouchend="handleTaskSwipeEnd(event, ${t.id})">
                         <div class="flex items-center gap-4">
-                            <div onclick="toggleTask(${t.id})" class="w-7 h-7 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'} flex items-center justify-center transition-all">
-                                ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg>' : ''}
+                            <div onclick="event.stopPropagation(); toggleTask(${t.id})" class="w-7 h-7 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'} flex items-center justify-center transition-all">
+                                ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
                             </div>
                             <div class="flex-1" onclick="toggleDetails(${t.id})">
-                                <p class="text-[15px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
-                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
+                                <p class="text-[16px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
+                                <span class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
                             </div>
                         </div>
                     </div>
                     <div class="details-panel" id="details-${t.id}">
-                        <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Añadir detalles o notas..." 
-                            class="w-full bg-white p-4 rounded-xl border-none text-xs text-slate-500 focus:ring-0 outline-none resize-none shadow-inner" rows="3">${t.notes || ''}</textarea>
+                        <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Escribe notas aquí..." 
+                            class="w-full bg-slate-50 p-4 rounded-xl border-none text-[13px] text-slate-500 focus:ring-0 outline-none resize-none shadow-inner" rows="3">${t.notes || ''}</textarea>
                     </div>
                 </div>
             `).join('');
+        }
+
+        let taskTouchStartX = 0;
+        function handleTaskSwipeStart(e, id) { 
+            taskTouchStartX = e.touches[0].clientX; 
+            document.getElementById(`task-${id}`).style.transition = 'none'; 
+        }
+
+        function handleTaskSwipeMove(e, id) {
+            const diff = e.touches[0].clientX - taskTouchStartX;
+            if (diff < 0) {
+                document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -120)}px)`;
+            }
+        }
+
+        function handleTaskSwipeEnd(e, id) {
+            const el = document.getElementById(`task-${id}`);
+            const diff = e.changedTouches[0].clientX - taskTouchStartX;
+            el.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            if (diff < -90) { 
+                el.style.transform = 'translateX(-100%)'; 
+                haptic(); 
+                setTimeout(() => deleteTask(id), 200); 
+            } else { 
+                el.style.transform = 'translateX(0)'; 
+            }
         }
 
         function toggleDetails(id) {
@@ -430,28 +476,21 @@
             saveToStorage();
         }
 
-        let taskTouchStartX = 0;
-        function handleTaskSwipeStart(e, id) { taskTouchStartX = e.touches[0].clientX; document.getElementById(`task-${id}`).style.transition = 'none'; }
-        function handleTaskSwipeMove(e, id) {
-            const diff = e.touches[0].clientX - taskTouchStartX;
-            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -110)}px)`;
-        }
-        function handleTaskSwipeEnd(e, id) {
-            const el = document.getElementById(`task-${id}`);
-            const diff = e.changedTouches[0].clientX - taskTouchStartX;
-            el.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-            if (diff < -85) { el.style.transform = 'translateX(-100%)'; haptic(); setTimeout(() => deleteTask(id), 200); }
-            else { el.style.transform = 'translateX(0)'; }
-        }
-
         function toggleTask(id) { 
             tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, completed: !t.completed} : t); 
             haptic(); saveToStorage(); renderTasks(); 
         }
-        function deleteTask(id) { tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); saveToStorage(); renderTasks(); }
-        function saveToStorage() { localStorage.setItem('bulletTasksV5', JSON.stringify(tasksByDate)); renderCalendar(); }
+        
+        function deleteTask(id) { 
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); 
+            saveToStorage(); 
+            renderTasks(); 
+        }
+        
+        function saveToStorage() { 
+            localStorage.setItem('bulletTasksV6', JSON.stringify(tasksByDate)); 
+            renderCalendar(); 
+        }
     </script>
 </body>
 </html>
-
-```
