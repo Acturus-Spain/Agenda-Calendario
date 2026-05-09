@@ -8,10 +8,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Agenda">
     <meta name="theme-color" content="#4f46e5">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root { 
@@ -27,6 +28,7 @@
             height: 100dvh;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .main-container {
@@ -40,7 +42,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
-            padding-bottom: 240px;
+            padding-bottom: 240px; 
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
@@ -56,7 +58,7 @@
             box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.08);
             z-index: 100;
             transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
-            transform: translateY(calc(100% - 145px - var(--safe-bottom)));
+            transform: translateY(calc(100% - 150px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
         }
 
@@ -72,10 +74,7 @@
             background: white;
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
+            display: flex; justify-content: center; align-items: center; gap: 4px;
         }
         .dot { width: 4px; height: 4px; background: #e2e8f0; border-radius: 50%; }
 
@@ -83,14 +82,15 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 0 20px 20px 20px;
+            padding: 10px 20px 25px 20px;
         }
 
         .input-pill {
             flex: 1;
-            background: #f1f4f9;
-            border-radius: 24px;
-            padding: 8px 8px 8px 24px;
+            height: 56px; /* Tamaño estándar optimizado */
+            background: #f3f6fb;
+            border-radius: 28px;
+            padding: 0 6px 0 24px;
             display: flex;
             align-items: center;
             border: 1px solid #eef2f7;
@@ -98,40 +98,35 @@
 
         .time-chip {
             background: white;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             cursor: pointer;
         }
-
-        .time-chip span {
-            color: #4f46e5;
-            font-weight: 700;
-            font-size: 15px;
-        }
+        .time-chip span { color: #4f46e5; font-weight: 700; font-size: 15px; }
 
         .add-button-square {
-            width: 58px;
-            height: 58px;
+            width: 56px; /* Tamaño estándar alineado con input */
+            height: 56px;
             background: #4f46e5;
-            border-radius: 20px; /* Cuadrado con bordes redondeados como en la imagen */
+            border-radius: 18px; /* Cuadrado redondeado como imagen */
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
-            transition: transform 0.1s;
+            box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
+            transition: transform 0.1s, background-color 0.2s;
         }
-        .add-button-square:active { transform: scale(0.92); }
+        .add-button-square:active { transform: scale(0.92); background-color: #4338ca; }
 
         .task-wrapper {
             position: relative;
             background: white;
-            border-radius: 1.25rem;
-            margin-bottom: 0.75rem;
+            border-radius: 1.5rem;
+            margin-bottom: 0.85rem;
             overflow: hidden;
             border: 1px solid #f1f5f9;
         }
@@ -151,7 +146,7 @@
         .task-content-fg {
             position: relative;
             background: white;
-            padding: 1.25rem;
+            padding: 1.2rem;
             z-index: 2;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -164,58 +159,58 @@
             z-index: 2;
             position: relative;
         }
-
         .task-wrapper.open .details-panel {
             max-height: 200px;
-            padding: 0 1.25rem 1.25rem 1.25rem;
+            padding: 0 1.2rem 1.2rem 1.2rem;
         }
 
-        #calendarContent {
-            touch-action: pan-y;
-            will-change: transform;
-            transition: transform 0.3s ease-out;
+        #calendarContainer {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        #calendarWrapper {
+            display: flex;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+        }
+        .calendar-slide {
+            min-width: 100%;
+            padding-bottom: 5px;
         }
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         .calendar-day { 
-            height: 42px;
+            height: 46px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; border-radius: 12px; cursor: pointer;
-            position: relative;
-            font-weight: 500;
-            color: #64748b;
+            font-size: 0.95rem; border-radius: 14px; cursor: pointer;
+            position: relative; font-weight: 600; color: #64748b;
         }
         .calendar-day.selected { 
-            background: var(--primary); 
-            color: white; 
-            font-weight: 700; 
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); 
+            background: var(--primary); color: white; font-weight: 800; 
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3); 
         }
         .pending-dot { 
-            width: 4px; height: 4px; background: #6366f1; border-radius: 50%; 
+            width: 5px; height: 5px; background: #6366f1; border-radius: 50%; 
             position: absolute; bottom: 6px; 
         }
-        .selected .pending-dot { background: white; }
-
     </style>
 </head>
 <body class="text-slate-900">
 
     <div class="main-container max-w-md mx-auto">
-        <header class="px-6 pt-8 pb-4 flex justify-between items-end">
+        <header class="px-6 pt-10 pb-4 flex justify-between items-end">
             <div>
-                <p id="currentDateDisplay" class="text-indigo-600 font-bold text-xs uppercase tracking-widest mb-1">Cargando...</p>
+                <p id="currentDateDisplay" class="text-indigo-600 font-extrabold text-[11px] uppercase tracking-[0.15em] mb-1">Cargando...</p>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Mi Agenda</h1>
             </div>
-            <div id="taskCounter" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-black">0</div>
+            <div id="taskCounter" class="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-black shadow-sm">0</div>
         </header>
 
-        <main class="task-area" id="taskList">
-            <!-- Tareas dinámicas aquí -->
-        </main>
+        <main class="task-area" id="taskList"></main>
 
         <div id="bottomDrawer" class="bottom-drawer">
-            <div class="h-10 w-full flex justify-center items-center cursor-grab" id="drawerHandle">
+            <div class="h-10 w-full flex justify-center items-center" id="drawerHandle">
                 <div class="drawer-handle-bump">
                     <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                 </div>
@@ -223,29 +218,32 @@
 
             <div class="input-bar-container">
                 <div class="input-pill">
-                    <input type="text" id="taskInput" placeholder="¿Qué sigue?" 
-                        class="flex-1 bg-transparent border-none text-[16px] font-medium focus:ring-0 outline-none placeholder:text-slate-400">
+                    <input type="text" id="taskInput" placeholder="Añadir tareas" 
+                        class="flex-1 bg-transparent border-none text-[16px] font-semibold focus:ring-0 outline-none placeholder:text-slate-400">
                     <div class="time-chip" onclick="document.getElementById('timeInput').showPicker()">
                         <span id="timeDisplay">12:00</span>
-                        <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         <input type="time" id="timeInput" class="hidden" onchange="updateTimeDisplay(this.value)">
                     </div>
                 </div>
                 <button onclick="addTask()" class="add-button-square">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3" stroke-linecap="round"/></svg>
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3.5" stroke-linecap="round"/></svg>
                 </button>
             </div>
 
-            <div class="px-6 pb-8">
-                <div id="calendarSwipeArea" class="bg-slate-50/50 rounded-3xl p-5 border border-slate-100 overflow-hidden">
-                    <div class="flex items-center justify-between mb-5">
-                        <span id="calendarMonth" class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">MAYO DE 2026</span>
+            <div class="px-6 pb-10">
+                <div id="calendarSwipeArea" class="bg-slate-50/70 rounded-[2rem] p-6 border border-slate-100 overflow-hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <span id="calendarMonth" class="text-[12px] font-black text-slate-400 uppercase tracking-[0.25em]">MES AÑO</span>
                     </div>
-                    <div class="calendar-grid mb-2 text-[10px] font-black text-slate-300 text-center uppercase">
+                    <div class="calendar-grid mb-3 text-[10px] font-black text-slate-300 text-center uppercase tracking-widest">
                         <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
                     </div>
-                    <div id="calendarContent">
-                        <div id="calendarBody" class="calendar-grid"></div>
+                    
+                    <div id="calendarContainer">
+                        <div id="calendarWrapper">
+                            <div id="calendarBody" class="calendar-grid calendar-slide"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -253,14 +251,20 @@
     </div>
 
     <script>
-        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV6')) || {};
+        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV7')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
 
-        const haptic = () => { if(window.navigator.vibrate) window.navigator.vibrate(10); };
+        const haptic = (type = 'light') => { 
+            if(window.navigator.vibrate) {
+                if (type === 'light') window.navigator.vibrate(10);
+                else window.navigator.vibrate([10, 30, 10]);
+            }
+        };
 
         window.onload = () => {
-            document.getElementById('timeInput').value = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+            const now = new Date();
+            document.getElementById('timeInput').value = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             updateTimeDisplay(document.getElementById('timeInput').value);
             renderCalendar();
             renderTasks();
@@ -270,6 +274,55 @@
 
         function updateTimeDisplay(val) {
             document.getElementById('timeDisplay').innerText = val;
+        }
+
+        function initCalendarDraggable() {
+            const area = document.getElementById('calendarSwipeArea');
+            const wrapper = document.getElementById('calendarWrapper');
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            area.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                wrapper.style.transition = 'none';
+            }, {passive: true});
+
+            area.addEventListener('touchmove', e => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX - startX;
+                wrapper.style.transform = `translateX(${currentX}px)`;
+            }, {passive: true});
+
+            area.addEventListener('touchend', e => {
+                if (!isDragging) return;
+                isDragging = false;
+                wrapper.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                
+                const threshold = window.innerWidth / 3;
+                if (Math.abs(currentX) > threshold) {
+                    if (currentX > 0) {
+                        wrapper.style.transform = 'translateX(100%)';
+                        setTimeout(() => { changeMonth(-1); finalizeTransition(wrapper, -100); }, 300);
+                    } else {
+                        wrapper.style.transform = 'translateX(-100%)';
+                        setTimeout(() => { changeMonth(1); finalizeTransition(wrapper, 100); }, 300);
+                    }
+                } else {
+                    wrapper.style.transform = 'translateX(0)';
+                }
+                currentX = 0;
+            });
+        }
+
+        function finalizeTransition(wrapper, offset) {
+            wrapper.style.transition = 'none';
+            wrapper.style.transform = `translateX(${offset}%)`;
+            setTimeout(() => {
+                wrapper.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                wrapper.style.transform = 'translateX(0)';
+            }, 10);
         }
 
         function initDrawerGestures() {
@@ -286,66 +339,9 @@
             });
         }
 
-        function initCalendarDraggable() {
-            const container = document.getElementById('calendarContent');
-            let startX = 0;
-            let currentX = 0;
-            let isDragging = false;
-
-            container.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX;
-                isDragging = true;
-                container.style.transition = 'none';
-            });
-
-            container.addEventListener('touchmove', e => {
-                if (!isDragging) return;
-                currentX = e.touches[0].clientX - startX;
-                // Aplicamos el movimiento en tiempo real
-                container.style.transform = `translateX(${currentX}px)`;
-            });
-
-            container.addEventListener('touchend', e => {
-                isDragging = false;
-                container.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-                
-                const threshold = window.innerWidth / 4;
-                if (currentX > threshold) {
-                    // Mover al mes anterior
-                    container.style.transform = `translateX(100%)`;
-                    setTimeout(() => {
-                        changeMonth(-1);
-                        container.style.transition = 'none';
-                        container.style.transform = `translateX(-100%)`;
-                        setTimeout(() => {
-                            container.style.transition = 'transform 0.3s ease-out';
-                            container.style.transform = `translateX(0)`;
-                        }, 10);
-                    }, 300);
-                } else if (currentX < -threshold) {
-                    // Mover al siguiente mes
-                    container.style.transform = `translateX(-100%)`;
-                    setTimeout(() => {
-                        changeMonth(1);
-                        container.style.transition = 'none';
-                        container.style.transform = `translateX(100%)`;
-                        setTimeout(() => {
-                            container.style.transition = 'transform 0.3s ease-out';
-                            container.style.transform = `translateX(0)`;
-                        }, 10);
-                    }, 300);
-                } else {
-                    // Volver al centro
-                    container.style.transform = `translateX(0)`;
-                }
-                currentX = 0;
-            });
-        }
-
         function renderCalendar() {
             const body = document.getElementById('calendarBody');
             const monthDisplay = document.getElementById('calendarMonth');
-            
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
@@ -394,7 +390,7 @@
             saveToStorage();
             renderTasks();
             textInput.value = '';
-            haptic();
+            haptic('heavy');
         }
 
         function renderTasks() {
@@ -421,17 +417,17 @@
                          ontouchend="handleTaskSwipeEnd(event, ${t.id})">
                         <div class="flex items-center gap-4">
                             <div onclick="event.stopPropagation(); toggleTask(${t.id})" class="w-7 h-7 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'} flex items-center justify-center transition-all">
-                                ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+                                ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
                             </div>
                             <div class="flex-1" onclick="toggleDetails(${t.id})">
-                                <p class="text-[16px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
+                                <p class="text-[17px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'} leading-tight">${t.text}</p>
                                 <span class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
                             </div>
                         </div>
                     </div>
                     <div class="details-panel" id="details-${t.id}">
                         <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Escribe notas aquí..." 
-                            class="w-full bg-slate-50 p-4 rounded-xl border-none text-[13px] text-slate-500 focus:ring-0 outline-none resize-none shadow-inner" rows="3">${t.notes || ''}</textarea>
+                            class="w-full bg-slate-50 p-4 rounded-2xl border-none text-[14px] text-slate-500 focus:ring-0 outline-none resize-none" rows="4">${t.notes || ''}</textarea>
                     </div>
                 </div>
             `).join('');
@@ -445,22 +441,18 @@
 
         function handleTaskSwipeMove(e, id) {
             const diff = e.touches[0].clientX - taskTouchStartX;
-            if (diff < 0) {
-                document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -120)}px)`;
-            }
+            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
         }
 
         function handleTaskSwipeEnd(e, id) {
             const el = document.getElementById(`task-${id}`);
             const diff = e.changedTouches[0].clientX - taskTouchStartX;
             el.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-            if (diff < -90) { 
+            if (diff < -80) { 
                 el.style.transform = 'translateX(-100%)'; 
                 haptic(); 
                 setTimeout(() => deleteTask(id), 200); 
-            } else { 
-                el.style.transform = 'translateX(0)'; 
-            }
+            } else { el.style.transform = 'translateX(0)'; }
         }
 
         function toggleDetails(id) {
@@ -483,12 +475,11 @@
         
         function deleteTask(id) { 
             tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); 
-            saveToStorage(); 
-            renderTasks(); 
+            saveToStorage(); renderTasks(); 
         }
         
         function saveToStorage() { 
-            localStorage.setItem('bulletTasksV6', JSON.stringify(tasksByDate)); 
+            localStorage.setItem('bulletTasksV7', JSON.stringify(tasksByDate)); 
             renderCalendar(); 
         }
     </script>
