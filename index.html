@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bullet Planner Pro</title>
     
-    <!-- Configuración para modo App (Pantalla completa) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mi Agenda">
@@ -21,7 +20,6 @@
             --safe-bottom: env(safe-area-inset-bottom); 
             --primary: #4f46e5;
         }
-        
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f8fafc;
@@ -31,14 +29,12 @@
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
-
         .main-container {
             display: flex;
             flex-direction: column;
             height: 100dvh;
             padding-top: var(--safe-top);
         }
-
         .task-area {
             flex: 1;
             overflow-y: auto;
@@ -48,6 +44,7 @@
         }
         .task-area::-webkit-scrollbar { display: none; }
 
+        /* ── FIX 4: drawer full-width con contenido centrado ─── */
         .bottom-drawer {
             position: fixed;
             bottom: 0;
@@ -63,6 +60,10 @@
             padding-bottom: var(--safe-bottom);
         }
         .bottom-drawer.expanded { transform: translateY(0); }
+        .drawer-inner {
+            max-width: 28rem;
+            margin: 0 auto;
+        }
 
         .drawer-handle-bump {
             position: absolute;
@@ -84,9 +85,9 @@
             gap: 12px;
             padding: 10px 20px 25px 20px;
         }
-
         .input-pill {
             flex: 1;
+            min-width: 0;
             height: 56px;
             background: #f3f6fb;
             border-radius: 28px;
@@ -95,7 +96,6 @@
             align-items: center;
             border: 1px solid #eef2f7;
         }
-
         .time-chip {
             background: white;
             padding: 8px 14px;
@@ -105,12 +105,13 @@
             gap: 6px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             cursor: pointer;
+            flex-shrink: 0;
         }
         .time-chip span { color: #4f46e5; font-weight: 700; font-size: 15px; }
-
         .add-button-square {
             width: 56px; 
             height: 56px;
+            min-width: 56px;
             background: #4f46e5;
             border-radius: 18px; 
             display: flex;
@@ -120,6 +121,8 @@
             box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
             flex-shrink: 0;
             transition: transform 0.1s;
+            border: none;
+            cursor: pointer;
         }
         .add-button-square:active { transform: scale(0.92); }
 
@@ -131,7 +134,6 @@
             overflow: hidden;
             border: 1px solid #f1f5f9;
         }
-
         .task-delete-bg {
             position: absolute;
             inset: 0;
@@ -143,7 +145,6 @@
             color: white;
             z-index: 1;
         }
-
         .task-content-fg {
             position: relative;
             background: white;
@@ -152,50 +153,29 @@
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* ── FIX 2: animación notas con grid-template-rows ──────
+           Transiciona la altura real del contenido → fluidez total */
         .details-panel {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             background: white;
             z-index: 2;
             position: relative;
         }
         .task-wrapper.open .details-panel {
-            max-height: 200px;
+            grid-template-rows: 1fr;
+        }
+        .details-panel-inner {
+            overflow: hidden;
+            min-height: 0;
+        }
+        .details-content {
             padding: 0 1.2rem 1.2rem 1.2rem;
         }
 
-        #installBanner {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background: white;
-            z-index: 1000;
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border: 1px solid #eef2f7;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transform: translateY(-150%);
-            transition: transform 0.5s cubic-bezier(0.17, 0.84, 0.44, 1);
-        }
-        #installBanner.show { transform: translateY(0); }
-
-        .install-icon {
-            width: 45px;
-            height: 45px;
-            background: var(--primary);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-shrink: 0;
-        }
-
+        /* ── FIX 3: calendario de altura fija ───────────────────
+           Días más pequeños + siempre 42 celdas en JS */
         #calendarContainer {
             overflow: hidden;
             position: relative;
@@ -204,29 +184,52 @@
         }
         #calendarWrapper {
             display: flex;
-            width: 300%; /* Tres meses (Previo, Actual, Siguiente) pegados */
-            transform: translateX(-33.33%); /* Empezamos en el centro */
+            width: 300%;
+            transform: translateX(-33.33%);
             will-change: transform;
         }
         .calendar-month-slide {
             width: 33.33%;
             flex-shrink: 0;
         }
-        
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
         .calendar-day { 
-            height: 46px;
+            height: 34px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.95rem; border-radius: 14px; cursor: pointer;
+            font-size: 0.82rem; border-radius: 10px; cursor: pointer;
             position: relative; font-weight: 600; color: #64748b;
         }
         .calendar-day.selected { 
             background: var(--primary); color: white; font-weight: 800; 
-            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3); 
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); 
         }
         .pending-dot { 
-            width: 5px; height: 5px; background: #6366f1; border-radius: 50%; 
-            position: absolute; bottom: 6px; 
+            width: 4px; height: 4px; background: #6366f1; border-radius: 50%; 
+            position: absolute; bottom: 3px; 
+        }
+
+        /* Banner instalación */
+        #installBanner {
+            position: fixed;
+            top: 20px; left: 20px; right: 20px;
+            background: white;
+            z-index: 1000;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            border: 1px solid #eef2f7;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateY(-150%);
+            transition: transform 0.5s cubic-bezier(0.17, 0.84, 0.44, 1);
+        }
+        #installBanner.show { transform: translateY(0); }
+        .install-icon {
+            width: 45px; height: 45px;
+            background: var(--primary); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; flex-shrink: 0;
         }
     </style>
 </head>
@@ -238,10 +241,12 @@
         </div>
         <div class="flex-1">
             <h4 class="text-sm font-bold text-slate-800">Instalar Mi Agenda</h4>
-            <p class="text-[11px] text-slate-500 font-medium">Añádela a tu pantalla de inicio para usarla offline</p>
+            <p class="text-[11px] text-slate-500 font-medium">Añádela a tu pantalla de inicio</p>
         </div>
         <button onclick="triggerInstall()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md active:scale-90 transition-transform">Instalar</button>
-        <button onclick="hideInstallBanner()" class="text-slate-300 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button onclick="hideInstallBanner()" class="text-slate-300 p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
     </div>
 
     <div class="main-container max-w-md mx-auto">
@@ -256,41 +261,43 @@
         <main class="task-area" id="taskList"></main>
 
         <div id="bottomDrawer" class="bottom-drawer">
-            <div class="h-10 w-full flex justify-center items-center" id="drawerHandle">
-                <div class="drawer-handle-bump">
-                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                </div>
-            </div>
-
-            <div class="input-bar-container">
-                <div class="input-pill">
-                    <input type="text" id="taskInput" placeholder="Añadir tareas" 
-                        class="flex-1 bg-transparent border-none text-[16px] font-semibold focus:ring-0 outline-none placeholder:text-slate-400">
-                    <div class="time-chip" onclick="document.getElementById('timeInput').showPicker()">
-                        <span id="timeDisplay">12:00</span>
-                        <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        <input type="time" id="timeInput" class="hidden" onchange="updateTimeDisplay(this.value)">
+            <!-- FIX 4: drawer-inner centra y limita el ancho del contenido -->
+            <div class="drawer-inner">
+                <div class="h-10 w-full flex justify-center items-center" id="drawerHandle">
+                    <div class="drawer-handle-bump">
+                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                     </div>
                 </div>
-                <button onclick="addTask()" class="add-button-square">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3.5" stroke-linecap="round"/></svg>
-                </button>
-            </div>
 
-            <div class="px-6 pb-10">
-                <div id="calendarSwipeArea" class="bg-slate-50/70 rounded-[2rem] p-6 border border-slate-100 overflow-hidden">
-                    <div class="flex items-center justify-between mb-6">
-                        <span id="calendarMonth" class="text-[12px] font-black text-slate-400 uppercase tracking-[0.25em]">MES AÑO</span>
+                <div class="input-bar-container">
+                    <div class="input-pill">
+                        <input type="text" id="taskInput" placeholder="Añadir tareas"
+                            class="flex-1 min-w-0 bg-transparent border-none text-[16px] font-semibold focus:ring-0 outline-none placeholder:text-slate-400">
+                        <div class="time-chip" onclick="document.getElementById('timeInput').showPicker()">
+                            <span id="timeDisplay">12:00</span>
+                            <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <input type="time" id="timeInput" class="hidden" onchange="updateTimeDisplay(this.value)">
+                        </div>
                     </div>
-                    <div class="calendar-grid mb-3 text-[10px] font-black text-slate-300 text-center uppercase tracking-widest">
-                        <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
-                    </div>
-                    
-                    <div id="calendarContainer">
-                        <div id="calendarWrapper">
-                            <div id="month-prev" class="calendar-month-slide calendar-grid"></div>
-                            <div id="month-curr" class="calendar-month-slide calendar-grid"></div>
-                            <div id="month-next" class="calendar-month-slide calendar-grid"></div>
+                    <button onclick="addTask()" class="add-button-square">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3.5" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
+
+                <div class="px-6 pb-10">
+                    <div class="bg-slate-50/70 rounded-[2rem] p-4 border border-slate-100 overflow-hidden">
+                        <div class="mb-3">
+                            <span id="calendarMonth" class="text-[12px] font-black text-slate-400 uppercase tracking-[0.25em]">MES AÑO</span>
+                        </div>
+                        <div class="calendar-grid mb-2 text-[9px] font-black text-slate-300 text-center uppercase tracking-widest">
+                            <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                        </div>
+                        <div id="calendarContainer">
+                            <div id="calendarWrapper">
+                                <div id="month-prev" class="calendar-month-slide calendar-grid"></div>
+                                <div id="month-curr" class="calendar-month-slide calendar-grid"></div>
+                                <div id="month-next" class="calendar-month-slide calendar-grid"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -302,98 +309,75 @@
         let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV10')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
-        
         let deferredPrompt;
+
+        // ── FIX 1: haptic DEFINIDA ───────────────────────────────
+        // BUG RAÍZ del toggle: haptic() se llamaba sin estar definida
+        // → ReferenceError detenía toggleTask() antes de guardar nada
+        const haptic = (type = 'light') => {
+            if (window.navigator.vibrate)
+                window.navigator.vibrate(type === 'light' ? 10 : [10, 30, 10]);
+        };
 
         window.onload = () => {
             const now = new Date();
-            document.getElementById('timeInput').value = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('timeInput').value =
+                now.getHours().toString().padStart(2,'0') + ':' +
+                now.getMinutes().toString().padStart(2,'0');
             updateTimeDisplay(document.getElementById('timeInput').value);
             renderCalendarCarrousel();
             renderTasks();
             initDrawerGestures();
             initCalendarDraggable();
-            
-            // Configuración PWA
             setupPWA();
             registerServiceWorker();
         };
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Evitar que el navegador muestre el prompt automático
             e.preventDefault();
-            // Guardar el evento para dispararlo luego
             deferredPrompt = e;
-            
-            // Mostrar nuestro banner personalizado solo si no estamos ya instalados
-            if (!window.matchMedia('(display-mode: standalone)').matches) {
-                setTimeout(() => {
-                    document.getElementById('installBanner').classList.add('show');
-                }, 2000); // Pequeño retraso para no agobiar al abrir
-            }
+            if (!window.matchMedia('(display-mode: standalone)').matches)
+                setTimeout(() => document.getElementById('installBanner').classList.add('show'), 2000);
         });
-
         function triggerInstall() {
             if (!deferredPrompt) return;
-            // Mostrar el prompt nativo
             deferredPrompt.prompt();
-            // Esperar a la elección del usuario
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('Usuario aceptó la instalación');
-                }
-                hideInstallBanner();
-                deferredPrompt = null;
-            });
+            deferredPrompt.userChoice.then(() => { hideInstallBanner(); deferredPrompt = null; });
         }
-
-        function hideInstallBanner() {
-            document.getElementById('installBanner').classList.remove('show');
-        }
+        function hideInstallBanner() { document.getElementById('installBanner').classList.remove('show'); }
 
         function setupPWA() {
-            const manifest = {
-                "name": "Mi Agenda Bullet Pro",
-                "short_name": "MiAgenda",
-                "start_url": ".",
-                "display": "standalone",
-                "background_color": "#f8fafc",
-                "description": "Organizador de tareas minimalista y gestual.",
-                "theme_color": "#4f46e5",
-                "icons": [
-                    {
-                        "src": "https://placehold.co/192x192/4f46e5/white?text=BP",
-                        "sizes": "192x192",
-                        "type": "image/png"
-                    },
-                    {
-                        "src": "https://placehold.co/512x512/4f46e5/white?text=BP",
-                        "sizes": "512x512",
-                        "type": "image/png"
-                    }
+            const blob = new Blob([JSON.stringify({
+                name:"Mi Agenda Bullet Pro", short_name:"MiAgenda", start_url:".",
+                display:"standalone", background_color:"#f8fafc", theme_color:"#4f46e5",
+                icons:[
+                    {src:"https://placehold.co/192x192/4f46e5/white?text=BP",sizes:"192x192",type:"image/png"},
+                    {src:"https://placehold.co/512x512/4f46e5/white?text=BP",sizes:"512x512",type:"image/png"}
                 ]
-            };
-            const stringManifest = JSON.stringify(manifest);
-            const blob = new Blob([stringManifest], {type: 'application/json'});
-            const manifestURL = URL.createObjectURL(blob);
-            document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
+            })], {type:'application/json'});
+            document.head.insertAdjacentHTML('beforeend',`<link rel="manifest" href="${URL.createObjectURL(blob)}">`);
         }
 
-        function updateTimeDisplay(val) {
-            document.getElementById('timeDisplay').innerText = val;
+        function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+            const swBlob = new Blob([
+                `self.addEventListener('install',e=>self.skipWaiting());
+                 self.addEventListener('fetch',e=>e.respondWith(fetch(e.request)));`
+            ], {type:'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
         }
 
+        function updateTimeDisplay(val) { document.getElementById('timeDisplay').innerText = val; }
+
+        // ── Calendario ───────────────────────────────────────────
         function renderCalendarCarrousel() {
-            const monthDisplay = document.getElementById('calendarMonth');
-            monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
-
-            // Renderizar el mes anterior, actual y siguiente para el carrete
-            const prevDate = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth() - 1, 1);
-            const nextDate = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth() + 1, 1);
-
-            renderMonthHTML('month-prev', prevDate);
+            document.getElementById('calendarMonth').innerText =
+                new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'}).format(currentViewDate);
+            const prev = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth()-1, 1);
+            const next = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth()+1, 1);
+            renderMonthHTML('month-prev', prev);
             renderMonthHTML('month-curr', currentViewDate);
-            renderMonthHTML('month-next', nextDate);
+            renderMonthHTML('month-next', next);
         }
 
         function renderMonthHTML(elementId, dateObj) {
@@ -402,76 +386,64 @@
             const month = dateObj.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
             const startingDay = firstDay === 0 ? 6 : firstDay - 1;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
+            const daysInMonth = new Date(year, month+1, 0).getDate();
             let html = '';
+
             for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
+
             for (let day = 1; day <= daysInMonth; day++) {
-                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isSelected = dStr === selectedDateStr;
-                const hasPending = tasksByDate[dStr] && tasksByDate[dStr].some(t => !t.completed);
-                html += `<div onclick="selectDate('${dStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">${day}${hasPending ? '<div class="pending-dot"></div>' : ''}</div>`;
+                const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const sel = dStr === selectedDateStr;
+                const pending = tasksByDate[dStr]?.some(t => !t.completed);
+                html += `<div onclick="selectDate('${dStr}')" class="calendar-day${sel?' selected':''}">
+                            ${day}${pending?'<div class="pending-dot"></div>':''}
+                         </div>`;
             }
+
+            // FIX 3: rellenar siempre hasta 42 celdas (6 filas × 7)
+            // Todos los meses ocupan exactamente la misma altura visual
+            const used = startingDay + daysInMonth;
+            const trailing = used <= 35 ? 35 - used : 42 - used;
+            for (let i = 0; i < trailing; i++) html += `<div class="calendar-day"></div>`;
+
             container.innerHTML = html;
         }
 
         function initCalendarDraggable() {
             const container = document.getElementById('calendarContainer');
-            const wrapper = document.getElementById('calendarWrapper');
-            let startX = 0;
-            let currentTranslate = 0;
-            let isDragging = false;
-            const viewWidth = container.offsetWidth;
+            const wrapper   = document.getElementById('calendarWrapper');
+            let startX = 0, currentTranslate = 0, isDragging = false;
+            const vw = container.offsetWidth;
 
             container.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX;
-                isDragging = true;
+                startX = e.touches[0].clientX; isDragging = true;
                 wrapper.style.transition = 'none';
-            }, {passive: true});
+            }, {passive:true});
 
             container.addEventListener('touchmove', e => {
                 if (!isDragging) return;
                 const diff = e.touches[0].clientX - startX;
-                // Calculamos el desplazamiento base (-33.33% es el centro) mas el arrastre actual
-                const basePercent = -33.3333;
-                const movePercent = (diff / viewWidth) * 33.3333;
-                wrapper.style.transform = `translateX(${basePercent + movePercent}%)`;
+                wrapper.style.transform = `translateX(${-33.3333 + (diff/vw)*33.3333}%)`;
                 currentTranslate = diff;
-            }, {passive: true});
+            }, {passive:true});
 
-            container.addEventListener('touchend', e => {
+            container.addEventListener('touchend', () => {
                 if (!isDragging) return;
                 isDragging = false;
-                wrapper.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
-                
-                const threshold = viewWidth / 3.5;
-                if (Math.abs(currentTranslate) > threshold) {
-                    if (currentTranslate > 0) {
-                        // Mover al anterior
-                        wrapper.style.transform = 'translateX(0%)';
-                        setTimeout(() => {
-                            currentViewDate.setMonth(currentViewDate.getMonth() - 1);
-                            resetWrapper(wrapper);
-                        }, 300);
-                    } else {
-                        // Mover al siguiente
-                        wrapper.style.transform = 'translateX(-66.66%)';
-                        setTimeout(() => {
-                            currentViewDate.setMonth(currentViewDate.getMonth() + 1);
-                            resetWrapper(wrapper);
-                        }, 300);
-                    }
+                wrapper.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
+                if (Math.abs(currentTranslate) > vw/3.5) {
+                    wrapper.style.transform = currentTranslate > 0 ? 'translateX(0%)' : 'translateX(-66.66%)';
+                    setTimeout(() => {
+                        currentViewDate.setMonth(currentViewDate.getMonth() + (currentTranslate>0 ? -1 : 1));
+                        wrapper.style.transition = 'none';
+                        wrapper.style.transform = 'translateX(-33.33%)';
+                        renderCalendarCarrousel();
+                    }, 300);
                     haptic();
                 } else {
                     wrapper.style.transform = 'translateX(-33.33%)';
                 }
             });
-        }
-
-        function resetWrapper(wrapper) {
-            wrapper.style.transition = 'none';
-            wrapper.style.transform = 'translateX(-33.33%)';
-            renderCalendarCarrousel();
         }
 
         function initDrawerGestures() {
@@ -480,14 +452,15 @@
             let startY = 0;
             handle.addEventListener('touchstart', e => startY = e.touches[0].clientY);
             handle.addEventListener('touchend', e => {
-                const deltaY = e.changedTouches[0].clientY - startY;
-                if (deltaY < -30) drawer.classList.add('expanded');
-                else if (deltaY > 30) drawer.classList.remove('expanded');
+                const dy = e.changedTouches[0].clientY - startY;
+                if (dy < -30) drawer.classList.add('expanded');
+                else if (dy > 30) drawer.classList.remove('expanded');
                 else drawer.classList.toggle('expanded');
                 haptic();
             });
         }
 
+        // ── Tareas ───────────────────────────────────────────────
         function selectDate(dateStr) {
             selectedDateStr = dateStr;
             renderCalendarCarrousel();
@@ -496,128 +469,122 @@
         }
 
         function addTask() {
-            const textInput = document.getElementById('taskInput');
-            const timeInput = document.getElementById('timeInput');
-            if (!textInput.value.trim()) return;
-            const newTask = {
-                id: Date.now(),
-                text: textInput.value.trim(),
-                time: timeInput.value || "12:00",
-                completed: false,
-                notes: ""
-            };
+            const ti = document.getElementById('taskInput');
+            const tm = document.getElementById('timeInput');
+            if (!ti.value.trim()) return;
+            const task = {id:Date.now(), text:ti.value.trim(), time:tm.value||'12:00', completed:false, notes:''};
             if (!tasksByDate[selectedDateStr]) tasksByDate[selectedDateStr] = [];
-            tasksByDate[selectedDateStr].unshift(newTask);
-            saveToStorage();
-            renderTasks();
-            textInput.value = '';
+            tasksByDate[selectedDateStr].unshift(task);
+            saveToStorage(); renderTasks(); ti.value = '';
             haptic('heavy');
         }
 
         function renderTasks() {
             const list = document.getElementById('taskList');
             const dayTasks = tasksByDate[selectedDateStr] || [];
-            const displayDate = new Date(selectedDateStr + "T00:00:00");
-            document.getElementById('currentDateDisplay').innerText = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).format(displayDate);
-            document.getElementById('taskCounter').innerText = dayTasks.filter(t => !t.completed).length;
+            const disp = new Date(selectedDateStr + 'T00:00:00');
+            document.getElementById('currentDateDisplay').innerText =
+                new Intl.DateTimeFormat('es-ES',{weekday:'short',day:'numeric',month:'short'}).format(disp);
+            document.getElementById('taskCounter').innerText = dayTasks.filter(t=>!t.completed).length;
 
             if (dayTasks.length === 0) {
                 list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">Tu agenda está vacía</div>`;
                 return;
             }
 
-            list.innerHTML = dayTasks.map((t) => `
+            list.innerHTML = dayTasks.map(t => `
                 <div class="task-wrapper" id="wrapper-${t.id}">
                     <div class="task-delete-bg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </div>
-                    <div class="task-content-fg" 
+                    <div class="task-content-fg"
                          id="task-${t.id}"
-                         ontouchstart="handleTaskSwipeStart(event, ${t.id})"
-                         ontouchmove="handleTaskSwipeMove(event, ${t.id})"
-                         ontouchend="handleTaskSwipeEnd(event, ${t.id})"
+                         ontouchstart="handleTaskSwipeStart(event,${t.id})"
+                         ontouchmove="handleTaskSwipeMove(event,${t.id})"
+                         ontouchend="handleTaskSwipeEnd(event,${t.id})"
                          onclick="toggleDetails(${t.id})">
                         <div class="flex items-center gap-4">
-                            <div onclick="event.stopPropagation(); toggleTask(${t.id})" class="w-7 h-7 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'} flex items-center justify-center transition-all">
+                            <!-- FIX 1 (parte 2): ontouchend en el círculo con preventDefault
+                                 impide que el evento suba al padre táctil y doble-dispare -->
+                            <div ontouchend="event.stopPropagation();event.preventDefault();toggleTask(${t.id})"
+                                 onclick="event.stopPropagation();toggleTask(${t.id})"
+                                 class="w-7 h-7 rounded-full border-2 flex-shrink-0
+                                 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'}
+                                 flex items-center justify-center transition-all">
                                 ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
                             </div>
-                            <div class="flex-1">
-                                <p class="text-[17px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'} leading-tight">${t.text}</p>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[17px] font-bold leading-tight
+                                   ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
                                 <span class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
                             </div>
                         </div>
                     </div>
+                    <!-- FIX 2: grid-template-rows → altura real, sin saltos -->
                     <div class="details-panel" id="details-${t.id}">
-                        <textarea onblur="updateNotes(${t.id}, this.value)" placeholder="Escribe notas aquí..." 
-                            class="w-full bg-slate-50 p-4 rounded-2xl border-none text-[14px] text-slate-500 focus:ring-0 outline-none resize-none" rows="4">${t.notes || ''}</textarea>
+                        <div class="details-panel-inner">
+                            <div class="details-content">
+                                <textarea onblur="updateNotes(${t.id},this.value)"
+                                    placeholder="Escribe notas aquí..."
+                                    class="w-full bg-slate-50 p-4 rounded-2xl border-none text-[14px] text-slate-500 focus:ring-0 outline-none resize-none"
+                                    rows="3">${t.notes||''}</textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
         let taskTouchStartX = 0;
-        function handleTaskSwipeStart(e, id) { 
-            taskTouchStartX = e.touches[0].clientX; 
-            document.getElementById(`task-${id}`).style.transition = 'none'; 
+        function handleTaskSwipeStart(e, id) {
+            taskTouchStartX = e.touches[0].clientX;
+            document.getElementById(`task-${id}`).style.transition = 'none';
         }
-
         function handleTaskSwipeMove(e, id) {
             const diff = e.touches[0].clientX - taskTouchStartX;
-            if (diff < 0) {
-                // Solo permitimos deslizar hacia la izquierda para borrar
-                document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
-            }
+            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff,-100)}px)`;
         }
-
         function handleTaskSwipeEnd(e, id) {
             const el = document.getElementById(`task-${id}`);
             const diff = e.changedTouches[0].clientX - taskTouchStartX;
-            el.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-            if (diff < -80) { 
-                el.style.transform = 'translateX(-100%)'; 
-                haptic(); 
-                setTimeout(() => deleteTask(id), 200); 
-            } else { el.style.transform = 'translateX(0)'; }
+            el.style.transition = 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
+            if (diff < -80) {
+                el.style.transform = 'translateX(-100%)';
+                haptic();
+                setTimeout(() => deleteTask(id), 200);
+            } else {
+                el.style.transform = 'translateX(0)';
+            }
         }
 
         function toggleDetails(id) {
-            const wrapper = document.getElementById(`wrapper-${id}`);
-            const wasOpen = wrapper.classList.contains('open');
-            document.querySelectorAll('.task-wrapper').forEach(w => w.classList.remove('open'));
-            if (!wasOpen) wrapper.classList.add('open');
+            const w = document.getElementById(`wrapper-${id}`);
+            const wasOpen = w.classList.contains('open');
+            document.querySelectorAll('.task-wrapper').forEach(x => x.classList.remove('open'));
+            if (!wasOpen) w.classList.add('open');
             haptic();
         }
 
         function updateNotes(id, text) {
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, notes: text} : t);
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id===id ? {...t,notes:text} : t);
             saveToStorage();
         }
 
-        function toggleTask(id) { 
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, completed: !t.completed} : t); 
-            haptic(); saveToStorage(); renderTasks(); 
-        }
-        
-        function deleteTask(id) { 
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id); 
-            saveToStorage(); renderTasks(); 
-        }
-        
-        function saveToStorage() { 
-            localStorage.setItem('bulletTasksV10', JSON.stringify(tasksByDate)); 
-            renderCalendarCarrousel(); 
+        function toggleTask(id) {
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id===id ? {...t,completed:!t.completed} : t);
+            haptic(); saveToStorage(); renderTasks();
         }
 
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                    self.addEventListener('install', e => self.skipWaiting());
-                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
-                `;
-                const blob = new Blob([swCode], {type: 'application/javascript'});
-                const swUrl = URL.createObjectURL(blob);
-                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW failed', err));
-            }
+        function deleteTask(id) {
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id!==id);
+            saveToStorage(); renderTasks();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('bulletTasksV10', JSON.stringify(tasksByDate));
+            renderCalendarCarrousel();
         }
     </script>
 </body>
