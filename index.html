@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bullet Planner Pro</title>
     
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- Configuración para modo App (Pantalla completa) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Agenda">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4f46e5">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -58,7 +59,7 @@
             box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.08);
             z-index: 100;
             transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
-            transform: translateY(calc(100% - 150px - var(--safe-bottom)));
+            transform: translateY(calc(100% - 145px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
         }
 
@@ -87,7 +88,7 @@
 
         .input-pill {
             flex: 1;
-            height: 56px; /* Tamaño estándar optimizado */
+            height: 56px;
             background: #f3f6fb;
             border-radius: 28px;
             padding: 0 6px 0 24px;
@@ -109,18 +110,19 @@
         .time-chip span { color: #4f46e5; font-weight: 700; font-size: 15px; }
 
         .add-button-square {
-            width: 56px; /* Tamaño estándar alineado con input */
+            width: 56px; 
             height: 56px;
             background: #4f46e5;
-            border-radius: 18px; /* Cuadrado redondeado como imagen */
+            border-radius: 18px; 
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
-            transition: transform 0.1s, background-color 0.2s;
+            flex-shrink: 0;
+            transition: transform 0.1s;
         }
-        .add-button-square:active { transform: scale(0.92); background-color: #4338ca; }
+        .add-button-square:active { transform: scale(0.92); }
 
         .task-wrapper {
             position: relative;
@@ -168,15 +170,17 @@
             overflow: hidden;
             position: relative;
             width: 100%;
+            touch-action: pan-x;
         }
         #calendarWrapper {
             display: flex;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            width: 100%;
+            width: 300%; /* Tres meses (Previo, Actual, Siguiente) */
+            transform: translateX(-33.33%); /* Empezamos en el centro */
+            will-change: transform;
         }
-        .calendar-slide {
-            min-width: 100%;
-            padding-bottom: 5px;
+        .calendar-month-slide {
+            width: 33.33%;
+            flex-shrink: 0;
         }
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
@@ -242,7 +246,9 @@
                     
                     <div id="calendarContainer">
                         <div id="calendarWrapper">
-                            <div id="calendarBody" class="calendar-grid calendar-slide"></div>
+                            <div id="month-prev" class="calendar-month-slide calendar-grid"></div>
+                            <div id="month-curr" class="calendar-month-slide calendar-grid"></div>
+                            <div id="month-next" class="calendar-month-slide calendar-grid"></div>
                         </div>
                     </div>
                 </div>
@@ -251,7 +257,7 @@
     </div>
 
     <script>
-        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV7')) || {};
+        let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV10')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
 
@@ -266,63 +272,106 @@
             const now = new Date();
             document.getElementById('timeInput').value = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             updateTimeDisplay(document.getElementById('timeInput').value);
-            renderCalendar();
+            renderCalendarCarrousel();
             renderTasks();
             initDrawerGestures();
             initCalendarDraggable();
+            registerServiceWorker();
         };
 
         function updateTimeDisplay(val) {
             document.getElementById('timeDisplay').innerText = val;
         }
 
+        function renderCalendarCarrousel() {
+            const monthDisplay = document.getElementById('calendarMonth');
+            monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
+
+            // Renderizar el mes anterior, actual y siguiente para el carrete
+            const prevDate = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth() - 1, 1);
+            const nextDate = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth() + 1, 1);
+
+            renderMonthHTML('month-prev', prevDate);
+            renderMonthHTML('month-curr', currentViewDate);
+            renderMonthHTML('month-next', nextDate);
+        }
+
+        function renderMonthHTML(elementId, dateObj) {
+            const container = document.getElementById(elementId);
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const startingDay = firstDay === 0 ? 6 : firstDay - 1;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let html = '';
+            for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = dStr === selectedDateStr;
+                const hasPending = tasksByDate[dStr] && tasksByDate[dStr].some(t => !t.completed);
+                html += `<div onclick="selectDate('${dStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">${day}${hasPending ? '<div class="pending-dot"></div>' : ''}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
         function initCalendarDraggable() {
-            const area = document.getElementById('calendarSwipeArea');
+            const container = document.getElementById('calendarContainer');
             const wrapper = document.getElementById('calendarWrapper');
             let startX = 0;
-            let currentX = 0;
+            let currentTranslate = 0;
             let isDragging = false;
+            const viewWidth = container.offsetWidth;
 
-            area.addEventListener('touchstart', e => {
+            container.addEventListener('touchstart', e => {
                 startX = e.touches[0].clientX;
                 isDragging = true;
                 wrapper.style.transition = 'none';
             }, {passive: true});
 
-            area.addEventListener('touchmove', e => {
+            container.addEventListener('touchmove', e => {
                 if (!isDragging) return;
-                currentX = e.touches[0].clientX - startX;
-                wrapper.style.transform = `translateX(${currentX}px)`;
+                const diff = e.touches[0].clientX - startX;
+                // Calculamos el desplazamiento base (-33.33% es el centro) mas el arrastre actual
+                const basePercent = -33.3333;
+                const movePercent = (diff / viewWidth) * 33.3333;
+                wrapper.style.transform = `translateX(${basePercent + movePercent}%)`;
+                currentTranslate = diff;
             }, {passive: true});
 
-            area.addEventListener('touchend', e => {
+            container.addEventListener('touchend', e => {
                 if (!isDragging) return;
                 isDragging = false;
-                wrapper.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                wrapper.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
                 
-                const threshold = window.innerWidth / 3;
-                if (Math.abs(currentX) > threshold) {
-                    if (currentX > 0) {
-                        wrapper.style.transform = 'translateX(100%)';
-                        setTimeout(() => { changeMonth(-1); finalizeTransition(wrapper, -100); }, 300);
+                const threshold = viewWidth / 3.5;
+                if (Math.abs(currentTranslate) > threshold) {
+                    if (currentTranslate > 0) {
+                        // Mover al anterior
+                        wrapper.style.transform = 'translateX(0%)';
+                        setTimeout(() => {
+                            currentViewDate.setMonth(currentViewDate.getMonth() - 1);
+                            resetWrapper(wrapper);
+                        }, 300);
                     } else {
-                        wrapper.style.transform = 'translateX(-100%)';
-                        setTimeout(() => { changeMonth(1); finalizeTransition(wrapper, 100); }, 300);
+                        // Mover al siguiente
+                        wrapper.style.transform = 'translateX(-66.66%)';
+                        setTimeout(() => {
+                            currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+                            resetWrapper(wrapper);
+                        }, 300);
                     }
+                    haptic();
                 } else {
-                    wrapper.style.transform = 'translateX(0)';
+                    wrapper.style.transform = 'translateX(-33.33%)';
                 }
-                currentX = 0;
             });
         }
 
-        function finalizeTransition(wrapper, offset) {
+        function resetWrapper(wrapper) {
             wrapper.style.transition = 'none';
-            wrapper.style.transform = `translateX(${offset}%)`;
-            setTimeout(() => {
-                wrapper.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-                wrapper.style.transform = 'translateX(0)';
-            }, 10);
+            wrapper.style.transform = 'translateX(-33.33%)';
+            renderCalendarCarrousel();
         }
 
         function initDrawerGestures() {
@@ -339,37 +388,9 @@
             });
         }
 
-        function renderCalendar() {
-            const body = document.getElementById('calendarBody');
-            const monthDisplay = document.getElementById('calendarMonth');
-            const year = currentViewDate.getFullYear();
-            const month = currentViewDate.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const startingDay = firstDay === 0 ? 6 : firstDay - 1;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            monthDisplay.innerText = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
-            
-            let html = '';
-            for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isSelected = dateStr === selectedDateStr;
-                const hasPending = tasksByDate[dateStr] && tasksByDate[dateStr].some(t => !t.completed);
-                html += `<div onclick="selectDate('${dateStr}')" class="calendar-day ${isSelected ? 'selected' : ''}">${day}${hasPending ? '<div class="pending-dot"></div>' : ''}</div>`;
-            }
-            body.innerHTML = html;
-        }
-
-        function changeMonth(delta) {
-            currentViewDate.setMonth(currentViewDate.getMonth() + delta);
-            renderCalendar();
-            haptic();
-        }
-
         function selectDate(dateStr) {
             selectedDateStr = dateStr;
-            renderCalendar();
+            renderCalendarCarrousel();
             renderTasks();
             haptic();
         }
@@ -414,12 +435,13 @@
                          id="task-${t.id}"
                          ontouchstart="handleTaskSwipeStart(event, ${t.id})"
                          ontouchmove="handleTaskSwipeMove(event, ${t.id})"
-                         ontouchend="handleTaskSwipeEnd(event, ${t.id})">
+                         ontouchend="handleTaskSwipeEnd(event, ${t.id})"
+                         onclick="toggleDetails(${t.id})">
                         <div class="flex items-center gap-4">
                             <div onclick="event.stopPropagation(); toggleTask(${t.id})" class="w-7 h-7 rounded-full border-2 ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'} flex items-center justify-center transition-all">
                                 ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
                             </div>
-                            <div class="flex-1" onclick="toggleDetails(${t.id})">
+                            <div class="flex-1">
                                 <p class="text-[17px] font-bold ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'} leading-tight">${t.text}</p>
                                 <span class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
                             </div>
@@ -441,7 +463,10 @@
 
         function handleTaskSwipeMove(e, id) {
             const diff = e.touches[0].clientX - taskTouchStartX;
-            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
+            if (diff < 0) {
+                // Solo permitimos deslizar hacia la izquierda para borrar
+                document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
+            }
         }
 
         function handleTaskSwipeEnd(e, id) {
@@ -479,8 +504,20 @@
         }
         
         function saveToStorage() { 
-            localStorage.setItem('bulletTasksV7', JSON.stringify(tasksByDate)); 
-            renderCalendar(); 
+            localStorage.setItem('bulletTasksV10', JSON.stringify(tasksByDate)); 
+            renderCalendarCarrousel(); 
+        }
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+                `;
+                const blob = new Blob([swCode], {type: 'application/javascript'});
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW failed', err));
+            }
         }
     </script>
 </body>
