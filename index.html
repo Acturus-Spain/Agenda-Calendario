@@ -8,7 +8,7 @@
     <!-- Configuración para modo App (Pantalla completa) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Agenda">
+    <meta name="apple-mobile-web-app-title" content="Mi Agenda">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4f46e5">
 
@@ -62,7 +62,6 @@
             transform: translateY(calc(100% - 145px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
         }
-
         .bottom-drawer.expanded { transform: translateY(0); }
 
         .drawer-handle-bump {
@@ -166,6 +165,37 @@
             padding: 0 1.2rem 1.2rem 1.2rem;
         }
 
+        #installBanner {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            z-index: 1000;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eef2f7;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateY(-150%);
+            transition: transform 0.5s cubic-bezier(0.17, 0.84, 0.44, 1);
+        }
+        #installBanner.show { transform: translateY(0); }
+
+        .install-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
         #calendarContainer {
             overflow: hidden;
             position: relative;
@@ -174,7 +204,7 @@
         }
         #calendarWrapper {
             display: flex;
-            width: 300%; /* Tres meses (Previo, Actual, Siguiente) */
+            width: 300%; /* Tres meses (Previo, Actual, Siguiente) pegados */
             transform: translateX(-33.33%); /* Empezamos en el centro */
             will-change: transform;
         }
@@ -201,6 +231,18 @@
     </style>
 </head>
 <body class="text-slate-900">
+
+    <div id="installBanner">
+        <div class="install-icon">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M8 20h8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="flex-1">
+            <h4 class="text-sm font-bold text-slate-800">Instalar Mi Agenda</h4>
+            <p class="text-[11px] text-slate-500 font-medium">Añádela a tu pantalla de inicio para usarla offline</p>
+        </div>
+        <button onclick="triggerInstall()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md active:scale-90 transition-transform">Instalar</button>
+        <button onclick="hideInstallBanner()" class="text-slate-300 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
 
     <div class="main-container max-w-md mx-auto">
         <header class="px-6 pt-10 pb-4 flex justify-between items-end">
@@ -260,13 +302,8 @@
         let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV10')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
-
-        const haptic = (type = 'light') => { 
-            if(window.navigator.vibrate) {
-                if (type === 'light') window.navigator.vibrate(10);
-                else window.navigator.vibrate([10, 30, 10]);
-            }
-        };
+        
+        let deferredPrompt;
 
         window.onload = () => {
             const now = new Date();
@@ -276,8 +313,71 @@
             renderTasks();
             initDrawerGestures();
             initCalendarDraggable();
+            
+            // Configuración PWA
+            setupPWA();
             registerServiceWorker();
         };
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Evitar que el navegador muestre el prompt automático
+            e.preventDefault();
+            // Guardar el evento para dispararlo luego
+            deferredPrompt = e;
+            
+            // Mostrar nuestro banner personalizado solo si no estamos ya instalados
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                setTimeout(() => {
+                    document.getElementById('installBanner').classList.add('show');
+                }, 2000); // Pequeño retraso para no agobiar al abrir
+            }
+        });
+
+        function triggerInstall() {
+            if (!deferredPrompt) return;
+            // Mostrar el prompt nativo
+            deferredPrompt.prompt();
+            // Esperar a la elección del usuario
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Usuario aceptó la instalación');
+                }
+                hideInstallBanner();
+                deferredPrompt = null;
+            });
+        }
+
+        function hideInstallBanner() {
+            document.getElementById('installBanner').classList.remove('show');
+        }
+
+        function setupPWA() {
+            const manifest = {
+                "name": "Mi Agenda Bullet Pro",
+                "short_name": "MiAgenda",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#f8fafc",
+                "description": "Organizador de tareas minimalista y gestual.",
+                "theme_color": "#4f46e5",
+                "icons": [
+                    {
+                        "src": "https://placehold.co/192x192/4f46e5/white?text=BP",
+                        "sizes": "192x192",
+                        "type": "image/png"
+                    },
+                    {
+                        "src": "https://placehold.co/512x512/4f46e5/white?text=BP",
+                        "sizes": "512x512",
+                        "type": "image/png"
+                    }
+                ]
+            };
+            const stringManifest = JSON.stringify(manifest);
+            const blob = new Blob([stringManifest], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blob);
+            document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
+        }
 
         function updateTimeDisplay(val) {
             document.getElementById('timeDisplay').innerText = val;
