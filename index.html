@@ -38,13 +38,12 @@
         .task-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 0.75rem;
             padding-bottom: 240px; 
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
 
-        /* ── FIX 4: drawer full-width con contenido centrado ─── */
         .bottom-drawer {
             position: fixed;
             bottom: 0;
@@ -126,11 +125,12 @@
         }
         .add-button-square:active { transform: scale(0.92); }
 
+        /* FIX 4: tasks más pequeñas */
         .task-wrapper {
             position: relative;
             background: white;
-            border-radius: 1.5rem;
-            margin-bottom: 0.85rem;
+            border-radius: 1.2rem;
+            margin-bottom: 0.6rem;
             overflow: hidden;
             border: 1px solid #f1f5f9;
         }
@@ -148,13 +148,12 @@
         .task-content-fg {
             position: relative;
             background: white;
-            padding: 1.2rem;
+            /* FIX 4: reducido de 1.2rem a 0.8rem */
+            padding: 0.8rem 1rem;
             z-index: 2;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* ── FIX 2: animación notas con grid-template-rows ──────
-           Transiciona la altura real del contenido → fluidez total */
         .details-panel {
             display: grid;
             grid-template-rows: 0fr;
@@ -171,26 +170,30 @@
             min-height: 0;
         }
         .details-content {
-            padding: 0 1.2rem 1.2rem 1.2rem;
+            padding: 0 1rem 1rem 1rem;
         }
 
-        /* ── FIX 3: calendario de altura fija ───────────────────
-           Días más pequeños + siempre 42 celdas en JS */
+        /* FIX 2: Calendario altura fija ─────────────────────────
+           El calendarContainer tiene altura fija = 6 filas × 34px + 5 gaps × 1px = 209px
+           Así los 3 slides nunca estiran el contenedor aunque tengan distinto nº de filas */
         #calendarContainer {
             overflow: hidden;
             position: relative;
             width: 100%;
+            height: 209px; /* 6 filas × 34px + 5 × 1px gap */
             touch-action: pan-x;
         }
         #calendarWrapper {
             display: flex;
             width: 300%;
+            height: 100%;
             transform: translateX(-33.33%);
             will-change: transform;
         }
         .calendar-month-slide {
             width: 33.33%;
             flex-shrink: 0;
+            align-content: start;
         }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
         .calendar-day { 
@@ -206,6 +209,21 @@
         .pending-dot { 
             width: 4px; height: 4px; background: #6366f1; border-radius: 50%; 
             position: absolute; bottom: 3px; 
+        }
+
+        /* FIX 3: indicador de notas en la task */
+        .notes-badge {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: #eef2ff;
+            color: #6366f1;
+            border-radius: 8px;
+            padding: 2px 7px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            flex-shrink: 0;
         }
 
         /* Banner instalación */
@@ -261,7 +279,6 @@
         <main class="task-area" id="taskList"></main>
 
         <div id="bottomDrawer" class="bottom-drawer">
-            <!-- FIX 4: drawer-inner centra y limita el ancho del contenido -->
             <div class="drawer-inner">
                 <div class="h-10 w-full flex justify-center items-center" id="drawerHandle">
                     <div class="drawer-handle-bump">
@@ -311,9 +328,6 @@
         let selectedDateStr = new Date().toISOString().split('T')[0];
         let deferredPrompt;
 
-        // ── FIX 1: haptic DEFINIDA ───────────────────────────────
-        // BUG RAÍZ del toggle: haptic() se llamaba sin estar definida
-        // → ReferenceError detenía toggleTask() antes de guardar nada
         const haptic = (type = 'light') => {
             if (window.navigator.vibrate)
                 window.navigator.vibrate(type === 'light' ? 10 : [10, 30, 10]);
@@ -400,10 +414,10 @@
                          </div>`;
             }
 
-            // FIX 3: rellenar siempre hasta 42 celdas (6 filas × 7)
-            // Todos los meses ocupan exactamente la misma altura visual
+            // FIX 2: siempre rellenar hasta 42 celdas (6 filas × 7 cols)
+            // Así los 3 slides tienen SIEMPRE la misma altura → sin saltos
             const used = startingDay + daysInMonth;
-            const trailing = used <= 35 ? 35 - used : 42 - used;
+            const trailing = Math.max(0, 42 - used);
             for (let i = 0; i < trailing; i++) html += `<div class="calendar-day"></div>`;
 
             container.innerHTML = html;
@@ -416,15 +430,20 @@
             const vw = container.offsetWidth;
 
             container.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX; isDragging = true;
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                // FIX 1: resetear currentTranslate en cada nuevo gesto
+                // Sin este reset, un tap después de un swipe reutilizaba el delta
+                // anterior y disparaba un cambio de mes no deseado
+                currentTranslate = 0;
                 wrapper.style.transition = 'none';
             }, {passive:true});
 
             container.addEventListener('touchmove', e => {
                 if (!isDragging) return;
                 const diff = e.touches[0].clientX - startX;
-                wrapper.style.transform = `translateX(${-33.3333 + (diff/vw)*33.3333}%)`;
                 currentTranslate = diff;
+                wrapper.style.transform = `translateX(${-33.3333 + (diff/vw)*33.3333}%)`;
             }, {passive:true});
 
             container.addEventListener('touchend', () => {
@@ -443,6 +462,8 @@
                 } else {
                     wrapper.style.transform = 'translateX(-33.33%)';
                 }
+                // Asegurar reset tras touchend
+                currentTranslate = 0;
             });
         }
 
@@ -492,7 +513,22 @@
                 return;
             }
 
-            list.innerHTML = dayTasks.map(t => `
+            list.innerHTML = dayTasks.map(t => {
+                // FIX 3: badge de notas — se muestra si la tarea tiene texto en notes
+                const hasNotes = t.notes && t.notes.trim().length > 0;
+                const notesBadge = hasNotes
+                    ? `<div class="notes-badge">
+                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                               <polyline points="14 2 14 8 20 8"/>
+                               <line x1="16" y1="13" x2="8" y2="13"/>
+                               <line x1="16" y1="17" x2="8" y2="17"/>
+                           </svg>
+                           Nota
+                       </div>`
+                    : '';
+
+                return `
                 <div class="task-wrapper" id="wrapper-${t.id}">
                     <div class="task-delete-bg">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -505,36 +541,34 @@
                          ontouchmove="handleTaskSwipeMove(event,${t.id})"
                          ontouchend="handleTaskSwipeEnd(event,${t.id})"
                          onclick="toggleDetails(${t.id})">
-                        <div class="flex items-center gap-4">
-                            <!-- FIX 1 (parte 2): ontouchend en el círculo con preventDefault
-                                 impide que el evento suba al padre táctil y doble-dispare -->
+                        <div class="flex items-center gap-3">
                             <div ontouchend="event.stopPropagation();event.preventDefault();toggleTask(${t.id})"
                                  onclick="event.stopPropagation();toggleTask(${t.id})"
-                                 class="w-7 h-7 rounded-full border-2 flex-shrink-0
+                                 class="w-6 h-6 rounded-full border-2 flex-shrink-0
                                  ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-md' : 'border-slate-200'}
                                  flex items-center justify-center transition-all">
-                                ${t.completed ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+                                ${t.completed ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-[17px] font-bold leading-tight
+                                <p class="text-[15px] font-bold leading-tight
                                    ${t.completed ? 'line-through text-slate-300' : 'text-slate-700'}">${t.text}</p>
-                                <span class="text-[11px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
+                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">${t.time}</span>
                             </div>
+                            ${notesBadge}
                         </div>
                     </div>
-                    <!-- FIX 2: grid-template-rows → altura real, sin saltos -->
                     <div class="details-panel" id="details-${t.id}">
                         <div class="details-panel-inner">
                             <div class="details-content">
                                 <textarea onblur="updateNotes(${t.id},this.value)"
                                     placeholder="Escribe notas aquí..."
-                                    class="w-full bg-slate-50 p-4 rounded-2xl border-none text-[14px] text-slate-500 focus:ring-0 outline-none resize-none"
+                                    class="w-full bg-slate-50 p-3 rounded-2xl border-none text-[13px] text-slate-500 focus:ring-0 outline-none resize-none"
                                     rows="3">${t.notes||''}</textarea>
                             </div>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         let taskTouchStartX = 0;
@@ -570,6 +604,8 @@
         function updateNotes(id, text) {
             tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id===id ? {...t,notes:text} : t);
             saveToStorage();
+            // FIX 3: re-renderizar para actualizar el badge de notas
+            renderTasks();
         }
 
         function toggleTask(id) {
