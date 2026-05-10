@@ -451,19 +451,22 @@
                 isDragging = false;
                 wrapper.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
                 if (Math.abs(currentTranslate) > vw/3.5) {
-                    wrapper.style.transform = currentTranslate > 0 ? 'translateX(0%)' : 'translateX(-66.66%)';
+                    // Capturar dirección ANTES de resetear currentTranslate
+                    // (el setTimeout la leería 300ms después, cuando ya vale 0)
+                    const direction = currentTranslate > 0 ? -1 : 1;
+                    wrapper.style.transform = direction === -1 ? 'translateX(0%)' : 'translateX(-66.66%)';
+                    currentTranslate = 0;
                     setTimeout(() => {
-                        currentViewDate.setMonth(currentViewDate.getMonth() + (currentTranslate>0 ? -1 : 1));
+                        currentViewDate.setMonth(currentViewDate.getMonth() + direction);
                         wrapper.style.transition = 'none';
                         wrapper.style.transform = 'translateX(-33.33%)';
                         renderCalendarCarrousel();
                     }, 300);
                     haptic();
                 } else {
+                    currentTranslate = 0;
                     wrapper.style.transform = 'translateX(-33.33%)';
                 }
-                // Asegurar reset tras touchend
-                currentTranslate = 0;
             });
         }
 
