@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bullet Planner Pro</title>
-
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mi Agenda">
@@ -13,58 +13,33 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    
     <style>
-        :root {
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
+        :root { 
+            --safe-top: env(safe-area-inset-top); 
+            --safe-bottom: env(safe-area-inset-bottom); 
             --primary: #4f46e5;
-
-            --bg: #f8fafc;
-            --text: #0f172a;
-            --muted: #64748b;
-            --surface: #ffffff;
-            --surface-2: #f8fafc;
-            --surface-3: #eef2ff;
-            --border: #e2e8f0;
-            --shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.08);
         }
-
-        body.dark {
-            --bg: #0f172a;
-            --text: #e5e7eb;
-            --muted: #94a3b8;
-            --surface: #111827;
-            --surface-2: #1f2937;
-            --surface-3: #111827;
-            --border: #263244;
-            --shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.35);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
             overflow: hidden;
             height: 100dvh;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
-            transition: background-color 0.25s ease, color 0.25s ease;
         }
-
         .main-container {
             display: flex;
             flex-direction: column;
             height: 100dvh;
             padding-top: var(--safe-top);
         }
-
         .task-area {
             flex: 1;
             overflow-y: auto;
             padding: 0.75rem;
-            padding-bottom: 240px;
+            padding-bottom: 240px; 
             scrollbar-width: none;
         }
         .task-area::-webkit-scrollbar { display: none; }
@@ -74,18 +49,16 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--surface);
+            background: white;
             border-top-left-radius: 2.5rem;
             border-top-right-radius: 2.5rem;
-            box-shadow: var(--shadow);
+            box-shadow: 0 -15px 40px -10px rgba(0, 0, 0, 0.08);
             z-index: 100;
-            transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1), background-color 0.25s ease;
+            transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
             transform: translateY(calc(100% - 145px - var(--safe-bottom)));
             padding-bottom: var(--safe-bottom);
-            border-top: 1px solid var(--border);
         }
         .bottom-drawer.expanded { transform: translateY(0); }
-
         .drawer-inner {
             max-width: 28rem;
             margin: 0 auto;
@@ -98,24 +71,12 @@
             transform: translateX(-50%);
             width: 60px;
             height: 24px;
-            background: var(--surface);
+            background: white;
             border-top-left-radius: 20px;
             border-top-right-radius: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            border-top: 1px solid var(--border);
-            border-left: 1px solid var(--border);
-            border-right: 1px solid var(--border);
+            display: flex; justify-content: center; align-items: center; gap: 4px;
         }
-
-        .dot {
-            width: 4px;
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 50%;
-        }
+        .dot { width: 4px; height: 4px; background: #e2e8f0; border-radius: 50%; }
 
         .input-bar-container {
             display: flex;
@@ -123,22 +84,19 @@
             gap: 12px;
             padding: 10px 20px 25px 20px;
         }
-
         .input-pill {
             flex: 1;
             min-width: 0;
             height: 56px;
-            background: var(--surface-2);
+            background: #f3f6fb;
             border-radius: 28px;
             padding: 0 6px 0 24px;
             display: flex;
             align-items: center;
-            border: 1px solid var(--border);
-            transition: background-color 0.25s ease, border-color 0.25s ease;
+            border: 1px solid #eef2f7;
         }
-
         .time-chip {
-            background: var(--surface);
+            background: white;
             padding: 8px 14px;
             border-radius: 16px;
             display: flex;
@@ -147,22 +105,14 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             cursor: pointer;
             flex-shrink: 0;
-            border: 1px solid var(--border);
-            transition: background-color 0.25s ease, border-color 0.25s ease;
         }
-
-        .time-chip span {
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 15px;
-        }
-
+        .time-chip span { color: #4f46e5; font-weight: 700; font-size: 15px; }
         .add-button-square {
-            width: 56px;
+            width: 56px; 
             height: 56px;
             min-width: 56px;
             background: #4f46e5;
-            border-radius: 18px;
+            border-radius: 18px; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -175,16 +125,15 @@
         }
         .add-button-square:active { transform: scale(0.92); }
 
+        /* FIX 4: tasks más pequeñas */
         .task-wrapper {
             position: relative;
-            background: var(--surface);
+            background: white;
             border-radius: 1.2rem;
             margin-bottom: 0.6rem;
             overflow: hidden;
-            border: 1px solid var(--border);
-            transition: background-color 0.25s ease, border-color 0.25s ease;
+            border: 1px solid #f1f5f9;
         }
-
         .task-delete-bg {
             position: absolute;
             inset: 0;
@@ -196,42 +145,44 @@
             color: white;
             z-index: 1;
         }
-
         .task-content-fg {
             position: relative;
-            background: var(--surface);
+            background: white;
+            /* FIX 4: reducido de 1.2rem a 0.8rem */
             padding: 0.8rem 1rem;
             z-index: 2;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .details-panel {
             display: grid;
             grid-template-rows: 0fr;
-            transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease;
-            background: var(--surface);
+            transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            background: white;
             z-index: 2;
             position: relative;
         }
-        .task-wrapper.open .details-panel { grid-template-rows: 1fr; }
-
+        .task-wrapper.open .details-panel {
+            grid-template-rows: 1fr;
+        }
         .details-panel-inner {
             overflow: hidden;
             min-height: 0;
         }
-
         .details-content {
             padding: 0 1rem 1rem 1rem;
         }
 
+        /* FIX 2: Calendario altura fija ─────────────────────────
+           El calendarContainer tiene altura fija = 6 filas × 34px + 5 gaps × 1px = 209px
+           Así los 3 slides nunca estiran el contenedor aunque tengan distinto nº de filas */
         #calendarContainer {
             overflow: hidden;
             position: relative;
             width: 100%;
-            height: 209px;
+            height: 209px; /* 6 filas × 34px + 5 × 1px gap */
             touch-action: pan-x;
         }
-
         #calendarWrapper {
             display: flex;
             width: 300%;
@@ -239,48 +190,28 @@
             transform: translateX(-33.33%);
             will-change: transform;
         }
-
         .calendar-month-slide {
             width: 33.33%;
             flex-shrink: 0;
             align-content: start;
         }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-        }
-
-        .calendar-day {
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .calendar-day { 
             height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.82rem;
-            border-radius: 10px;
-            cursor: pointer;
-            position: relative;
-            font-weight: 600;
-            color: #64748b;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.82rem; border-radius: 10px; cursor: pointer;
+            position: relative; font-weight: 600; color: #64748b;
+        }
+        .calendar-day.selected { 
+            background: var(--primary); color: white; font-weight: 800; 
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); 
+        }
+        .pending-dot { 
+            width: 4px; height: 4px; background: #6366f1; border-radius: 50%; 
+            position: absolute; bottom: 3px; 
         }
 
-        .calendar-day.selected {
-            background: var(--primary);
-            color: white;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
-        }
-
-        .pending-dot {
-            width: 4px;
-            height: 4px;
-            background: #6366f1;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 3px;
-        }
-
+        /* FIX 3: indicador de notas en la task */
         .notes-badge {
             display: flex;
             align-items: center;
@@ -295,191 +226,36 @@
             flex-shrink: 0;
         }
 
+        /* Banner instalación */
         #installBanner {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background: var(--surface);
+            top: 20px; left: 20px; right: 20px;
+            background: white;
             z-index: 1000;
             border-radius: 20px;
             padding: 16px;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-            border: 1px solid var(--border);
+            border: 1px solid #eef2f7;
             display: flex;
             align-items: center;
             gap: 15px;
             transform: translateY(-150%);
-            transition: transform 0.5s cubic-bezier(0.17, 0.84, 0.44, 1), background-color 0.25s ease, border-color 0.25s ease;
+            transition: transform 0.5s cubic-bezier(0.17, 0.84, 0.44, 1);
         }
-
         #installBanner.show { transform: translateY(0); }
-
         .install-icon {
-            width: 45px;
-            height: 45px;
-            background: var(--primary);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .settings-button {
-            width: 44px;
-            height: 44px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-            transition: transform 0.15s ease, background-color 0.25s ease, border-color 0.25s ease;
-        }
-        .settings-button:active { transform: scale(0.94); }
-
-        .settings-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-            padding: 16px;
-        }
-        .settings-overlay.show { display: flex; }
-
-        .settings-card {
-            width: 100%;
-            max-width: 28rem;
-            background: var(--surface);
-            border-radius: 28px;
-            border: 1px solid var(--border);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
-            padding: 18px;
-            color: var(--text);
-            transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
-        }
-
-        .settings-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 14px 16px;
-            border-radius: 18px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-        }
-
-        .theme-switch {
-            width: 58px;
-            height: 34px;
-            border-radius: 999px;
-            background: #cbd5e1;
-            position: relative;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: background-color 0.2s ease;
-        }
-        .theme-switch.on {
-            background: #4f46e5;
-        }
-
-        .theme-switch-knob {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: white;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.18);
-            transition: transform 0.2s ease;
-        }
-        .theme-switch.on .theme-switch-knob {
-            transform: translateX(24px);
-        }
-
-        .close-settings {
-            width: 40px;
-            height: 40px;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            background: var(--surface-2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text);
-        }
-
-        body.dark .text-slate-800,
-        body.dark .text-slate-700,
-        body.dark .text-slate-600,
-        body.dark .text-slate-500,
-        body.dark .text-slate-400,
-        body.dark .text-slate-300 {
-            color: var(--text) !important;
-        }
-
-        body.dark .text-slate-200 {
-            color: var(--muted) !important;
-        }
-
-        body.dark .bg-slate-50,
-        body.dark .bg-slate-100,
-        body.dark .bg-white {
-            background-color: var(--surface) !important;
-        }
-
-        body.dark .bg-slate-50\/70 {
-            background-color: var(--surface-2) !important;
-        }
-
-        body.dark .border-slate-100,
-        body.dark .border-slate-200 {
-            border-color: var(--border) !important;
-        }
-
-        body.dark .text-indigo-600 {
-            color: #a5b4fc !important;
-        }
-
-        body.dark .text-indigo-400 {
-            color: #818cf8 !important;
-        }
-
-        body.dark .bg-indigo-50 {
-            background-color: rgba(99, 102, 241, 0.16) !important;
-        }
-
-        body.dark .placeholder\:text-slate-400::placeholder {
-            color: #94a3b8 !important;
-        }
-
-        body.dark .notes-badge {
-            background: rgba(99, 102, 241, 0.18);
-            color: #a5b4fc;
-        }
-
-        body.dark .dot {
-            background: #475569;
+            width: 45px; height: 45px;
+            background: var(--primary); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; flex-shrink: 0;
         }
     </style>
 </head>
-<body>
+<body class="text-slate-900">
 
     <div id="installBanner">
         <div class="install-icon">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 4v12m0 0l-4-4m4 4l4-4M8 20h8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M8 20h8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="flex-1">
             <h4 class="text-sm font-bold text-slate-800">Instalar Mi Agenda</h4>
@@ -487,26 +263,17 @@
         </div>
         <button onclick="triggerInstall()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md active:scale-90 transition-transform">Instalar</button>
         <button onclick="hideInstallBanner()" class="text-slate-300 p-1">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
     </div>
 
     <div class="main-container max-w-md mx-auto">
-        <header class="px-6 pt-10 pb-4 flex justify-between items-start gap-4">
+        <header class="px-6 pt-10 pb-4 flex justify-between items-end">
             <div>
                 <p id="currentDateDisplay" class="text-indigo-600 font-extrabold text-[11px] uppercase tracking-[0.15em] mb-1">Cargando...</p>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Mi Agenda</h1>
             </div>
-
-           <button id="settingsButton" class="settings-button" onclick="openSettings()" aria-label="Abrir ajustes">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M11.983 3.06c.53-1.414 2.504-1.414 3.034 0l.214.572a1.5 1.5 0 001.423.99h.604c1.49 0 2.11 1.91 1.06 2.84l-.43.381a1.5 1.5 0 00-.49 1.64l.214.572c.53 1.414-.994 2.61-2.184 1.732l-.49-.362a1.5 1.5 0 00-1.77 0l-.49.362c-1.19.878-2.714-.318-2.184-1.732l.214-.572a1.5 1.5 0 00-.49-1.64l-.43-.381c-1.05-.93-.43-2.84 1.06-2.84h.604a1.5 1.5 0 001.423-.99l.214-.572z"/>
-        <circle cx="12" cy="12" r="3" stroke-width="2"/>
-    </svg>
-</button>
+            <div id="taskCounter" class="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-black shadow-sm">0</div>
         </header>
 
         <main class="task-area" id="taskList"></main>
@@ -525,21 +292,17 @@
                             class="flex-1 min-w-0 bg-transparent border-none text-[16px] font-semibold focus:ring-0 outline-none placeholder:text-slate-400">
                         <div class="time-chip" onclick="document.getElementById('timeInput').showPicker()">
                             <span id="timeDisplay">12:00</span>
-                            <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             <input type="time" id="timeInput" class="hidden" onchange="updateTimeDisplay(this.value)">
                         </div>
                     </div>
                     <button onclick="addTask()" class="add-button-square">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 6v12m6-6H6" stroke-width="3.5" stroke-linecap="round"/>
-                        </svg>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v12m6-6H6" stroke-width="3.5" stroke-linecap="round"/></svg>
                     </button>
                 </div>
 
                 <div class="px-6 pb-3">
-                    <div class="calendar-shell rounded-[2rem] p-4 border overflow-hidden" style="background: var(--surface-2); border-color: var(--border);">
+                    <div class="bg-slate-50/70 rounded-[2rem] p-4 border border-slate-100 overflow-hidden">
                         <div class="mb-3">
                             <span id="calendarMonth" class="text-[12px] font-black text-slate-400 uppercase tracking-[0.25em]">MES AÑO</span>
                         </div>
@@ -559,78 +322,18 @@
         </div>
     </div>
 
-    <div id="settingsModal" class="settings-overlay" onclick="closeSettingsOnBackdrop(event)">
-        <div class="settings-card" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-lg font-black">Ajustes</h2>
-                    <p class="text-xs text-slate-500 font-semibold mt-0.5">Personaliza la apariencia de la app</p>
-                </div>
-                <button class="close-settings" onclick="closeSettings()" aria-label="Cerrar ajustes">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="settings-row">
-                <div>
-                    <p class="font-bold text-sm">Modo oscuro</p>
-                    <p class="text-xs text-slate-500 font-medium">Cambia entre blanco y oscuro</p>
-                </div>
-
-                <button id="themeSwitch" class="theme-switch" onclick="toggleTheme()" aria-label="Cambiar modo">
-                    <span class="theme-switch-knob"></span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let tasksByDate = JSON.parse(localStorage.getItem('bulletTasksV10')) || {};
         let currentViewDate = new Date();
         let selectedDateStr = new Date().toISOString().split('T')[0];
         let deferredPrompt;
-        let currentTheme = localStorage.getItem('bulletThemeV1') || 'light';
 
         const haptic = (type = 'light') => {
             if (window.navigator.vibrate)
                 window.navigator.vibrate(type === 'light' ? 10 : [10, 30, 10]);
         };
 
-        function applyTheme(theme) {
-            currentTheme = theme === 'dark' ? 'dark' : 'light';
-            document.body.classList.toggle('dark', currentTheme === 'dark');
-            localStorage.setItem('bulletThemeV1', currentTheme);
-
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) metaTheme.setAttribute('content', currentTheme === 'dark' ? '#0f172a' : '#4f46e5');
-
-            const switchEl = document.getElementById('themeSwitch');
-            if (switchEl) switchEl.classList.toggle('on', currentTheme === 'dark');
-        }
-
-        function toggleTheme() {
-            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-            haptic();
-        }
-
-        function openSettings() {
-            document.getElementById('settingsModal').classList.add('show');
-            haptic();
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('show');
-        }
-
-        function closeSettingsOnBackdrop(e) {
-            if (e.target.id === 'settingsModal') closeSettings();
-        }
-
         window.onload = () => {
-            applyTheme(currentTheme);
-
             const now = new Date();
             document.getElementById('timeInput').value =
                 now.getHours().toString().padStart(2,'0') + ':' +
@@ -650,34 +353,23 @@
             if (!window.matchMedia('(display-mode: standalone)').matches)
                 setTimeout(() => document.getElementById('installBanner').classList.add('show'), 2000);
         });
-
         function triggerInstall() {
             if (!deferredPrompt) return;
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(() => {
-                hideInstallBanner();
-                deferredPrompt = null;
-            });
+            deferredPrompt.userChoice.then(() => { hideInstallBanner(); deferredPrompt = null; });
         }
-
-        function hideInstallBanner() {
-            document.getElementById('installBanner').classList.remove('show');
-        }
+        function hideInstallBanner() { document.getElementById('installBanner').classList.remove('show'); }
 
         function setupPWA() {
             const blob = new Blob([JSON.stringify({
-                name: "Mi Agenda Bullet Pro",
-                short_name: "MiAgenda",
-                start_url: ".",
-                display: "standalone",
-                background_color: currentTheme === 'dark' ? "#0f172a" : "#f8fafc",
-                theme_color: currentTheme === 'dark' ? "#0f172a" : "#4f46e5",
-                icons: [
+                name:"Mi Agenda Bullet Pro", short_name:"MiAgenda", start_url:".",
+                display:"standalone", background_color:"#f8fafc", theme_color:"#4f46e5",
+                icons:[
                     {src:"https://placehold.co/192x192/4f46e5/white?text=BP",sizes:"192x192",type:"image/png"},
                     {src:"https://placehold.co/512x512/4f46e5/white?text=BP",sizes:"512x512",type:"image/png"}
                 ]
             })], {type:'application/json'});
-            document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(blob)}">`);
+            document.head.insertAdjacentHTML('beforeend',`<link rel="manifest" href="${URL.createObjectURL(blob)}">`);
         }
 
         function registerServiceWorker() {
@@ -689,13 +381,12 @@
             navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
         }
 
-        function updateTimeDisplay(val) {
-            document.getElementById('timeDisplay').innerText = val;
-        }
+        function updateTimeDisplay(val) { document.getElementById('timeDisplay').innerText = val; }
 
+        // ── Calendario ───────────────────────────────────────────
         function renderCalendarCarrousel() {
             document.getElementById('calendarMonth').innerText =
-                new Intl.DateTimeFormat('es-ES', {month:'long', year:'numeric'}).format(currentViewDate);
+                new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'}).format(currentViewDate);
             const prev = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth()-1, 1);
             const next = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth()+1, 1);
             renderMonthHTML('month-prev', prev);
@@ -709,20 +400,22 @@
             const month = dateObj.getMonth();
             const firstDay = new Date(year, month, 1).getDay();
             const startingDay = firstDay === 0 ? 6 : firstDay - 1;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInMonth = new Date(year, month+1, 0).getDate();
             let html = '';
 
             for (let i = 0; i < startingDay; i++) html += `<div class="calendar-day"></div>`;
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
                 const sel = dStr === selectedDateStr;
                 const pending = tasksByDate[dStr]?.some(t => !t.completed);
-                html += `<div onclick="selectDate('${dStr}')" class="calendar-day${sel ? ' selected' : ''}">
-                            ${day}${pending ? '<div class="pending-dot"></div>' : ''}
+                html += `<div onclick="selectDate('${dStr}')" class="calendar-day${sel?' selected':''}">
+                            ${day}${pending?'<div class="pending-dot"></div>':''}
                          </div>`;
             }
 
+            // FIX 2: siempre rellenar hasta 42 celdas (6 filas × 7 cols)
+            // Así los 3 slides tienen SIEMPRE la misma altura → sin saltos
             const used = startingDay + daysInMonth;
             const trailing = Math.max(0, 42 - used);
             for (let i = 0; i < trailing; i++) html += `<div class="calendar-day"></div>`;
@@ -732,13 +425,16 @@
 
         function initCalendarDraggable() {
             const container = document.getElementById('calendarContainer');
-            const wrapper = document.getElementById('calendarWrapper');
+            const wrapper   = document.getElementById('calendarWrapper');
             let startX = 0, currentTranslate = 0, isDragging = false;
             const vw = container.offsetWidth;
 
             container.addEventListener('touchstart', e => {
                 startX = e.touches[0].clientX;
                 isDragging = true;
+                // FIX 1: resetear currentTranslate en cada nuevo gesto
+                // Sin este reset, un tap después de un swipe reutilizaba el delta
+                // anterior y disparaba un cambio de mes no deseado
                 currentTranslate = 0;
                 wrapper.style.transition = 'none';
             }, {passive:true});
@@ -747,14 +443,16 @@
                 if (!isDragging) return;
                 const diff = e.touches[0].clientX - startX;
                 currentTranslate = diff;
-                wrapper.style.transform = `translateX(${-33.3333 + (diff / vw) * 33.3333}%)`;
+                wrapper.style.transform = `translateX(${-33.3333 + (diff/vw)*33.3333}%)`;
             }, {passive:true});
 
             container.addEventListener('touchend', () => {
                 if (!isDragging) return;
                 isDragging = false;
                 wrapper.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
-                if (Math.abs(currentTranslate) > vw / 3.5) {
+                if (Math.abs(currentTranslate) > vw/3.5) {
+                    // Capturar dirección ANTES de resetear currentTranslate
+                    // (el setTimeout la leería 300ms después, cuando ya vale 0)
                     const direction = currentTranslate > 0 ? -1 : 1;
                     wrapper.style.transform = direction === -1 ? 'translateX(0%)' : 'translateX(-66.66%)';
                     currentTranslate = 0;
@@ -786,6 +484,7 @@
             });
         }
 
+        // ── Tareas ───────────────────────────────────────────────
         function selectDate(dateStr) {
             selectedDateStr = dateStr;
             renderCalendarCarrousel();
@@ -797,20 +496,10 @@
             const ti = document.getElementById('taskInput');
             const tm = document.getElementById('timeInput');
             if (!ti.value.trim()) return;
-
-            const task = {
-                id: Date.now(),
-                text: ti.value.trim(),
-                time: tm.value || '12:00',
-                completed: false,
-                notes: ''
-            };
-
+            const task = {id:Date.now(), text:ti.value.trim(), time:tm.value||'12:00', completed:false, notes:''};
             if (!tasksByDate[selectedDateStr]) tasksByDate[selectedDateStr] = [];
             tasksByDate[selectedDateStr].unshift(task);
-            saveToStorage();
-            renderTasks();
-            ti.value = '';
+            saveToStorage(); renderTasks(); ti.value = '';
             haptic('heavy');
         }
 
@@ -818,9 +507,9 @@
             const list = document.getElementById('taskList');
             const dayTasks = tasksByDate[selectedDateStr] || [];
             const disp = new Date(selectedDateStr + 'T00:00:00');
-
             document.getElementById('currentDateDisplay').innerText =
-                new Intl.DateTimeFormat('es-ES', {weekday:'short', day:'numeric', month:'short'}).format(disp);
+                new Intl.DateTimeFormat('es-ES',{weekday:'short',day:'numeric',month:'short'}).format(disp);
+            document.getElementById('taskCounter').innerText = dayTasks.filter(t=>!t.completed).length;
 
             if (dayTasks.length === 0) {
                 list.innerHTML = `<div class="py-32 text-center opacity-20 text-sm font-semibold italic">Tu agenda está vacía</div>`;
@@ -828,6 +517,7 @@
             }
 
             list.innerHTML = dayTasks.map(t => {
+                // FIX 3: badge de notas — se muestra si la tarea tiene texto en notes
                 const hasNotes = t.notes && t.notes.trim().length > 0;
                 const notesBadge = hasNotes
                     ? `<div class="notes-badge">
@@ -876,7 +566,7 @@
                                 <textarea onblur="updateNotes(${t.id},this.value)"
                                     placeholder="Escribe notas aquí..."
                                     class="w-full bg-slate-50 p-3 rounded-2xl border-none text-[13px] text-slate-500 focus:ring-0 outline-none resize-none"
-                                    rows="3">${t.notes || ''}</textarea>
+                                    rows="3">${t.notes||''}</textarea>
                             </div>
                         </div>
                     </div>
@@ -885,17 +575,14 @@
         }
 
         let taskTouchStartX = 0;
-
         function handleTaskSwipeStart(e, id) {
             taskTouchStartX = e.touches[0].clientX;
             document.getElementById(`task-${id}`).style.transition = 'none';
         }
-
         function handleTaskSwipeMove(e, id) {
             const diff = e.touches[0].clientX - taskTouchStartX;
-            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff, -100)}px)`;
+            if (diff < 0) document.getElementById(`task-${id}`).style.transform = `translateX(${Math.max(diff,-100)}px)`;
         }
-
         function handleTaskSwipeEnd(e, id) {
             const el = document.getElementById(`task-${id}`);
             const diff = e.changedTouches[0].clientX - taskTouchStartX;
@@ -918,22 +605,20 @@
         }
 
         function updateNotes(id, text) {
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, notes:text} : t);
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id===id ? {...t,notes:text} : t);
             saveToStorage();
+            // FIX 3: re-renderizar para actualizar el badge de notas
             renderTasks();
         }
 
         function toggleTask(id) {
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id === id ? {...t, completed: !t.completed} : t);
-            haptic();
-            saveToStorage();
-            renderTasks();
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].map(t => t.id===id ? {...t,completed:!t.completed} : t);
+            haptic(); saveToStorage(); renderTasks();
         }
 
         function deleteTask(id) {
-            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id !== id);
-            saveToStorage();
-            renderTasks();
+            tasksByDate[selectedDateStr] = tasksByDate[selectedDateStr].filter(t => t.id!==id);
+            saveToStorage(); renderTasks();
         }
 
         function saveToStorage() {
